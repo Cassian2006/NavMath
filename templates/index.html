@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NavMath Vision MVP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">NavMath Vision v0.3</p>
+          <h1>航运与数学专业智能可视化学习平台</h1>
+          <p class="hero-text">
+            当前 MVP 聚焦两门课：高等数学负责知识点解析与二维/三维绘图，船舶保安负责知识点问答与课程知识展示。
+          </p>
+          <div class="hero-tags">
+            <span>OCR 识别</span>
+            <span>知识点问答</span>
+            <span>Plotly 交互图形</span>
+            <span>MATLAB 代码生成</span>
+            <span>CSV 数据导入</span>
+          </div>
+        </div>
+        <div class="hero-panel">
+          <p>建议体验</p>
+          <ul>
+            <li>题目解析：判断曲面 z = x^2 - y^2 的类型</li>
+            <li>知识问答：ISPS 规则的主要目标是什么</li>
+            <li>图形演示：生成一个圆环面</li>
+            <li>函数绘图：y = exp(-x^2)</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <form id="analyze-form" class="panel form-panel">
+          <div class="panel-header">
+            <h2>输入区</h2>
+            <p>支持题目文字、公式、图形描述和图片四种入口。</p>
+          </div>
+
+          <label class="field">
+            <span>题目文本</span>
+            <textarea
+              id="questionText"
+              name="questionText"
+              rows="7"
+              placeholder="例如：判断曲面 z = x^2 - y^2 的类型，并说明为什么它是鞍面。"
+            ></textarea>
+          </label>
+
+          <label class="field">
+            <span>公式输入</span>
+            <input id="formula" name="formula" placeholder="例如：z = x^2 - y^2 或 y = exp(-x^2)" />
+          </label>
+
+          <label class="field">
+            <span>题目图片</span>
+            <input id="file" name="file" type="file" accept="image/*" />
+          </label>
+
+          <div class="actions">
+            <button type="submit" class="primary">开始解析</button>
+            <button type="button" id="fill-math" class="secondary">数学示例</button>
+            <button type="button" id="fill-sea" class="secondary">航海示例</button>
+            <button type="button" id="fill-shape" class="secondary">图形示例</button>
+          </div>
+        </form>
+
+        <section class="panel result-panel">
+          <div class="panel-header panel-header-row">
+            <div>
+              <h2>结果区</h2>
+              <p id="statusText">等待输入。</p>
+            </div>
+            <div class="mode-pills">
+              <span id="modeProblem" class="mode-pill">题目解析</span>
+              <span id="modeKnowledge" class="mode-pill">知识问答</span>
+              <span id="modeVisualization" class="mode-pill">图形演示</span>
+            </div>
+          </div>
+
+          <div class="result-grid">
+            <article class="card card-wide">
+              <h3>识别文本</h3>
+              <p id="inputText" class="mono">暂无内容</p>
+            </article>
+            <article class="card">
+              <h3>课程与模式</h3>
+              <p id="courseName">暂无匹配</p>
+              <p id="modeText">等待输入</p>
+              <div id="knowledgeTags" class="tag-list"></div>
+            </article>
+            <article class="card">
+              <h3>题目解析</h3>
+              <ol id="analysisSteps" class="step-list"></ol>
+              <p id="solutionText"></p>
+            </article>
+            <article class="card">
+              <h3>知识点问答</h3>
+              <p id="knowledgePointName">暂无匹配</p>
+              <p id="knowledgeDefinition"></p>
+            </article>
+            <article class="card">
+              <h3>OCR 状态</h3>
+              <p id="ocrText">未执行 OCR。</p>
+            </article>
+            <article class="card">
+              <h3>CSV 数据状态</h3>
+              <p id="importSummary">正在读取导入状态。</p>
+              <div id="importTags" class="tag-list"></div>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel chart-panel">
+        <div class="panel-header">
+          <h2>图形可视化</h2>
+          <p id="plotSummary">输入公式或图形描述后自动生成二维/三维图形。</p>
+        </div>
+        <div id="plot" class="plot"></div>
+        <div class="code-panel">
+          <h3>MATLAB 示例代码</h3>
+          <pre id="matlabCode" class="code-block">暂无代码</pre>
+          <p id="teachingTip" class="tip-text">暂无教学提示。</p>
+        </div>
+      </section>
+
+      <section class="panel import-panel">
+        <div class="panel-header">
+          <h2>CSV 导入</h2>
+          <p>等队友整理完表格后，可以直接把知识点表和题目表上传到当前项目的数据目录。</p>
+        </div>
+        <div class="import-grid">
+          <form id="knowledge-import-form" class="import-form">
+            <h3>知识点表</h3>
+            <input id="knowledgeCsv" type="file" accept=".csv" />
+            <button type="submit" class="secondary">上传 knowledge_points.csv</button>
+          </form>
+          <form id="problem-import-form" class="import-form">
+            <h3>题目表</h3>
+            <input id="problemCsv" type="file" accept=".csv" />
+            <button type="submit" class="secondary">上传 problems.csv</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

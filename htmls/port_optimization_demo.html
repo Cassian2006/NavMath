@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>港口集卡路径优化系统 - 遗传蚁群算法演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .pulse-animation {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 标题区域 -->
+    <header class="text-center mb-8">
+        <h1 class="text-3xl md:text-5xl font-bold text-blue-700 mb-2">
+            🚛 港口集卡路径优化系统
+        </h1>
+        <h2 class="text-xl text-gray-600 mb-4">
+            基于遗传蚁群算法 (GA-ACO) 的智能优化
+        </h2>
+        <div class="flex justify-center space-x-4 text-sm text-gray-500">
+            <span>📊 数学建模</span>
+            <span>🎬 实时动画</span>
+            <span>⚙️ 参数控制</span>
+            <span>📈 性能分析</span>
+        </div>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 左侧控制面板 -->
+        <div class="bg-white rounded-2xl shadow-lg p-5 space-y-5">
+            <!-- 参数设置 -->
+            <div>
+                <h3 class="font-bold text-lg text-blue-600 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    仿真参数设置
+                </h3>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-xs text-gray-500">集卡数量</label>
+                        <input id="truckNum" value="8" type="number" min="1" max="50" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs text-gray-500">岸桥数量</label>
+                        <input id="bridgeNum" value="3" type="number" min="1" max="10" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs text-gray-500">堆场数量</label>
+                        <input id="yardNum" value="6" type="number" min="1" max="20" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs text-gray-500">最大迭代</label>
+                        <input id="maxIter" value="100" type="number" min="10" max="1000" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs text-gray-500">信息素 α</label>
+                        <input id="alpha" value="1.0" type="number" step="0.1" min="0.1" max="5.0" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs text-gray-500">启发因子 β</label>
+                        <input id="beta" value="3.0" type="number" step="0.1" min="0.1" max="10.0" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs text-gray-500">挥发率 ρ</label>
+                        <input id="rho" value="0.3" type="number" step="0.1" min="0.01" max="0.99" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs text-gray-500">动画速度 (ms)</label>
+                        <input id="speed" value="80" type="number" min="10" max="500" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模式选择 -->
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="loadTianjin()" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-blue-800 transition-all flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
+                    </svg>
+                    天津港实例
+                </button>
+                <button onclick="setDemoMode()" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 rounded-lg font-medium hover:from-purple-700 hover:to-purple-800 transition-all flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    演示模式
+                </button>
+            </div>
+
+            <!-- 控制按钮 -->
+            <div class="grid grid-cols-3 gap-3">
+                <button onclick="startSimulation()" class="bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-lg font-medium hover:from-green-700 hover:to-green-800 transition-all flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </button>
+                <button onclick="pauseSimulation()" class="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-medium hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </button>
+                <button onclick="resetSimulation()" class="bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-lg font-medium hover:from-red-700 hover:to-red-800 transition-all flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- 成本信息 -->
+            <div class="bg-gray-50 rounded-xl p-3 space-y-2">
+                <h4 class="font-semibold text-gray-700 text-sm">📊 成本分析</h4>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div>迭代次数: <span id="iteration" class="font-bold text-blue-600">0</span></div>
+                    <div>最优路径: <span id="bestPathLength" class="font-bold text-green-600">0</span> km</div>
+                    <div>固定成本: <span id="fixedCost" class="text-gray-700">0</span> 万</div>
+                    <div>可变成本: <span id="variableCost" class="text-gray-700">0</span> 万</div>
+                    <div>惩罚成本: <span id="penaltyCost" class="text-gray-700">0</span> 万</div>
+                    <div>总成本: <span id="totalCost" class="font-bold text-red-600">0</span> 万</div>
+                </div>
+            </div>
+
+            <!-- 性能指标 -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-blue-50 rounded-lg p-3 text-center">
+                    <div class="text-xs text-gray-500">平均路径</div>
+                    <div id="avgPath" class="font-bold text-blue-600">0 km</div>
+                </div>
+                <div class="bg-green-50 rounded-lg p-3 text-center">
+                    <div class="text-xs text-gray-500">作业时间</div>
+                    <div id="jobTime" class="font-bold text-green-600">0 min</div>
+                </div>
+                <div class="bg-purple-50 rounded-lg p-3 text-center">
+                    <div class="text-xs text-gray-500">利用率</div>
+                    <div id="utilization" class="font-bold text-purple-600">0%</div>
+                </div>
+                <div class="bg-orange-50 rounded-lg p-3 text-center">
+                    <div class="text-xs text-gray-500">收敛速度</div>
+                    <div id="convSpeed" class="font-bold text-orange-600">0 iter</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧可视化区域 -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- 港口地图 -->
+            <div class="bg-white rounded-2xl shadow-lg p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold text-lg text-blue-600">🌊 港口集卡行驶动画</h3>
+                    <div class="flex space-x-2 text-xs">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full">岸桥</span>
+                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full">堆场</span>
+                        <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full">集卡</span>
+                        <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded-full">最优路径</span>
+                    </div>
+                </div>
+                <div class="relative">
+                    <canvas id="mapCanvas" width="800" height="500" class="w-full h-auto border border-gray-200 rounded-lg"></canvas>
+                    <div id="simulationStatus" class="absolute top-2 right-2 px-3 py-1 bg-green-500 text-white text-xs rounded-full font-medium pulse-animation hidden">
+                        仿真中...
+                    </div>
+                </div>
+            </div>
+
+            <!-- 收敛曲线 -->
+            <div class="bg-white rounded-2xl shadow-lg p-4">
+                <h3 class="font-bold text-lg text-blue-600 mb-3">📈 收敛曲线</h3>
+                <canvas id="convergenceChart" width="800" height="250" class="w-full h-auto border border-gray-200 rounded-lg"></canvas>
+            </div>
+
+            <!-- 实时日志 -->
+            <div class="bg-white rounded-2xl shadow-lg p-4">
+                <h3 class="font-bold text-lg text-blue-600 mb-3">📄 实时迭代日志</h3>
+                <div id="logPanel" class="h-32 overflow-y-auto bg-gray-50 p-3 rounded-lg text-xs font-mono space-y-1">
+                    <div class="text-gray-500">系统初始化完成，等待启动仿真...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数学建模说明 -->
+    <div class="mt-8 bg-white rounded-2xl shadow-lg p-6">
+        <h3 class="font-bold text-xl text-blue-600 mb-4">📘 数学建模与算法原理</h3>
+        <div class="grid md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-lg text-gray-800 mb-3">目标函数</h4>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="mb-2">min <span class="font-mono">C = C<sub>fixed</sub> + C<sub>variable</sub> + C<sub>penalty</sub></span></p>
+                    <ul class="list-disc list-inside text-sm space-y-1 text-gray-700">
+                        <li><span class="font-semibold">C<sub>fixed</sub></span>：固定成本（集卡购置、维护）</li>
+                        <li><span class="font-semibold">C<sub>variable</sub></span>：可变成本（燃油、人工）</li>
+                        <li><span class="font-semibold">C<sub>penalty</sub></span>：惩罚成本（延误、拥堵）</li>
+                    </ul>
+                </div>
+
+                <h4 class="font-semibold text-lg text-gray-800 mt-4 mb-3">约束条件</h4>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <ul class="list-disc list-inside text-sm space-y-1 text-gray-700">
+                        <li>集卡数量：0 ≤ T ≤ T<sub>max</sub></li>
+                        <li>岸桥作业时间：t<sub>bridge</sub> ≤ t<sub>max</sub></li>
+                        <li>堆场容量：Q<sub>yard</sub> ≤ Q<sub>max</sub></li>
+                        <li>路径长度：L ≤ L<sub>max</sub></li>
+                    </ul>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-semibold text-lg text-gray-800 mb-3">遗传蚁群算法 (GA-ACO)</h4>
+                <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                    <h5 class="font-medium text-blue-600 mb-2">遗传算法 (GA)</h5>
+                    <ul class="list-disc list-inside text-sm space-y-1 text-gray-700">
+                        <li>种群初始化：随机生成路径方案</li>
+                        <li>选择操作：轮盘赌选择适应度高的个体</li>
+                        <li>交叉操作：两点交叉产生新路径</li>
+                        <li>变异操作：随机交换路径节点</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h5 class="font-medium text-blue-600 mb-2">蚁群算法 (ACO)</h5>
+                    <ul class="list-disc list-inside text-sm space-y-1 text-gray-700">
+                        <li>信息素更新：τ<sub>ij</sub> = (1-ρ)τ<sub>ij</sub> + Δτ<sub>ij</sub></li>
+                        <li>状态转移：p<sub>ij</sub> = [τ<sub>ij</sub><sup>α</sup> × η<sub>ij</sub><sup>β</sup>] / Σ</li>
+                        <li>启发函数：η<sub>ij</sub> = 1 / d<sub>ij</sub>（距离倒数）</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="mt-8 text-center text-sm text-gray-500 py-4">
+        <p>© 2026 港口集卡路径优化系统 | 基于遗传蚁群算法实现</p>
+    </footer>
+</div>
+
+<script>
+// 全局变量
+let simulationRunning = false;
+let simulationPaused = false;
+let currentIteration = 0;
+let bestPath = [];
+let bestPathLength = Infinity;
+let totalCost = 0;
+let fixedCost = 0;
+let variableCost = 0;
+let penaltyCost = 0;
+
+// 港口模型数据
+let bridges = [];
+yards = [];
+trucks = [];
+
+// 画布和图表
+let mapCanvas, mapCtx;
+let convergenceChart;
+
+// 初始化函数
+function init() {
+    // 初始化画布
+    mapCanvas = document.getElementById('mapCanvas');
+    mapCtx = mapCanvas.getContext('2d');
+    
+    // 初始化收敛曲线图表
+    const chartCanvas = document.getElementById('convergenceChart');
+    convergenceChart = new Chart(chartCanvas, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: '总成本 (万元)',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: '路径长度 (km)',
+                    data: [],
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            animation: {
+                duration: 0
+            }
+        }
+    });
+    
+    // 初始化港口模型
+    initPortModel();
+    
+    // 绘制初始地图
+    drawMap();
+    
+    // 记录初始化日志
+    log('系统初始化完成，等待启动仿真...');
+}
+
+// 初始化港口模型
+function initPortModel() {
+    // 清空数据
+    bridges = [];
+    yards = [];
+    trucks = [];
+    
+    // 获取参数
+    const bridgeNum = parseInt(document.getElementById('bridgeNum').value);
+    const yardNum = parseInt(document.getElementById('yardNum').value);
+    const truckNum = parseInt(document.getElementById('truckNum').value);
+    
+    // 生成岸桥位置
+    for (let i = 0; i < bridgeNum; i++) {
+        bridges.push({
+            id: i,
+            type: 'bridge',
+            x: 80 + i * 200,
+            y: 60,
+            name: `岸桥${i+1}`
+        });
+    }
+    
+    // 生成堆场位置
+    for (let i = 0; i < yardNum; i++) {
+        yards.push({
+            id: i,
+            type: 'yard',
+            x: 120 + (i % 3) * 220,
+            y: 180 + Math.floor(i / 3) * 140,
+            name: `堆场${i+1}`,
+            capacity: 100 + Math.random() * 200
+        });
+    }
+    
+    // 生成集卡
+    for (let i = 0; i < truckNum; i++) {
+        trucks.push({
+            id: i,
+            x: 100 + Math.random() * 600,
+            y: 420 + Math.random() * 40,
+            status: 'idle',
+            path: [],
+            speed: 2 + Math.random() * 3
+        });
+    }
+}
+
+// 绘制地图
+function drawMap() {
+    // 清空画布
+    mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+    
+    // 绘制背景
+    mapCtx.fillStyle = '#f8fafc';
+    mapCtx.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
+    
+    // 绘制港口区域
+    mapCtx.fillStyle = '#dbeafe';
+    mapCtx.fillRect(0, 0, mapCanvas.width, 120);
+    
+    // 绘制道路
+    mapCtx.strokeStyle = '#94a3b8';
+    mapCtx.lineWidth = 2;
+    
+    // 主道路
+    mapCtx.beginPath();
+    mapCtx.moveTo(0, 150);
+    mapCtx.lineTo(mapCanvas.width, 150);
+    mapCtx.stroke();
+    
+    // 支路
+    for (let i = 0; i < yards.length; i++) {
+        mapCtx.beginPath();
+        mapCtx.moveTo(yards[i].x, yards[i].y);
+        mapCtx.lineTo(yards[i].x, 150);
+        mapCtx.stroke();
+    }
+    
+    // 绘制岸桥
+    bridges.forEach(bridge => {
+        // 绘制岸桥主体
+        mapCtx.fillStyle = '#3b82f6';
+        mapCtx.fillRect(bridge.x - 25, bridge.y - 20, 50, 40);
+        
+        // 绘制岸桥名称
+        mapCtx.fillStyle = '#ffffff';
+        mapCtx.font = '12px Arial';
+        mapCtx.textAlign = 'center';
+        mapCtx.fillText(bridge.name, bridge.x, bridge.y + 5);
+    });
+    
+    // 绘制堆场
+    yards.forEach(yard => {
+        // 绘制堆场主体
+        mapCtx.fillStyle = '#10b981';
+        mapCtx.fillRect(yard.x - 40, yard.y - 25, 80, 50);
+        
+        // 绘制堆场名称
+        mapCtx.fillStyle = '#ffffff';
+        mapCtx.font = '12px Arial';
+        mapCtx.textAlign = 'center';
+        mapCtx.fillText(yard.name, yard.x, yard.y + 5);
+    });
+    
+    // 绘制集卡
+    trucks.forEach(truck => {
+        // 绘制集卡
+        mapCtx.fillStyle = '#ef4444';
+        mapCtx.beginPath();
+        mapCtx.arc(truck.x, truck.y, 10, 0, 2 * Math.PI);
+        mapCtx.fill();
+        
+        // 绘制集卡编号
+        mapCtx.fillStyle = '#ffffff';
+        mapCtx.font = '10px Arial';
+        mapCtx.textAlign = 'center';
+        mapCtx.fillText(truck.id, truck.x, truck.y + 2);
+    });
+    
+    // 绘制最优路径
+    if (bestPath.length > 1) {
+        mapCtx.strokeStyle = '#f97316';
+        mapCtx.lineWidth = 3;
+        mapCtx.setLineDash([8, 4]);
+        mapCtx.beginPath();
+        mapCtx.moveTo(bestPath[0].x, bestPath[0].y);
+        for (let i = 1; i < bestPath.length; i++) {
+            mapCtx.lineTo(bestPath[i].x, bestPath[i].y);
+        }
+        mapCtx.stroke();
+        mapCtx.setLineDash([]);
+    }
+}
+
+// 遗传蚁群算法实现
+function runGAACO() {
+    if (!simulationRunning || simulationPaused) return;
+    
+    // 获取参数
+    const maxIter = parseInt(document.getElementById('maxIter').value);
+    const alpha = parseFloat(document.getElementById('alpha').value);
+    const beta = parseFloat(document.getElementById('beta').value);
+    const rho = parseFloat(document.getElementById('rho').value);
+    
+    // 初始化信息素矩阵
+    const pheromone = initializePheromone();
+    
+    // 主迭代循环
+    if (currentIteration < maxIter) {
+        // 1. 蚁群算法：构建路径
+        const antPaths = buildAntPaths(pheromone, alpha, beta);
+        
+        // 2. 遗传算法：优化路径
+        const gaPaths = runGeneticAlgorithm(antPaths);
+        
+        // 3. 计算适应度
+        const fitness = calculateFitness(gaPaths);
+        
+        // 4. 更新信息素
+        updatePheromone(pheromone, gaPaths, fitness, rho);
+        
+        // 5. 找到最优解
+        const bestIndex = fitness.indexOf(Math.min(...fitness));
+        const currentBestPath = gaPaths[bestIndex];
+        const currentBestLength = calculatePathLength(currentBestPath);
+        
+        // 6. 更新全局最优
+        if (currentBestLength < bestPathLength) {
+            bestPathLength = currentBestLength;
+            bestPath = currentBestPath;
+            
+            // 计算成本
+            calculateCosts();
+            
+            // 更新UI
+            updateUI();
+            
+            // 记录日志
+            log(`迭代 ${currentIteration}: 找到更优路径，长度 ${bestPathLength.toFixed(2)} km, 成本 ${totalCost.toFixed(2)} 万元`);
+        }
+        
+        // 7. 更新迭代计数
+        currentIteration++;
+        document.getElementById('iteration').textContent = currentIteration;
+        
+        // 8. 更新收敛曲线
+        updateConvergenceChart();
+        
+        // 9. 重绘地图
+        drawMap();
+        
+        // 10. 控制速度
+        const speed = parseInt(document.getElementById('speed').value);
+        setTimeout(runGAACO, speed);
+    } else {
+        // 仿真结束
+        simulationRunning = false;
+        document.getElementById('simulationStatus').classList.add('hidden');
+        log('🎉 仿真完成！达到最大迭代次数');
+    }
+}
+
+// 初始化信息素矩阵
+function initializePheromone() {
+    const nodes = [...bridges, ...yards];
+    const pheromone = {};
+    
+    for (let i = 0; i < nodes.length; i++) {
+        for (let j = 0; j < nodes.length; j++) {
+            if (i !== j) {
+                pheromone[`${i}-${j}`] = 1.0;
+            }
+        }
+    }
+    
+    return pheromone;
+}
+
+// 构建蚁群路径
+function buildAntPaths(pheromone, alpha, beta) {
+    const nodes = [...bridges, ...yards];
+    const antCount = trucks.length;
+    const paths = [];
+    
+    for (let ant = 0; ant < antCount; ant++) {
+        const path = [];
+        const visited = new Set();
+        
+        // 随机选择起点（岸桥）
+        const startIndex = Math.floor(Math.random() * bridges.length);
+        path.push(nodes[startIndex]);
+        visited.add(startIndex);
+        
+        // 构建路径
+        while (visited.size < nodes.length) {
+            const currentIndex = nodes.indexOf(path[path.length - 1]);
+            const nextIndex = selectNextNode(currentIndex, visited, nodes, pheromone, alpha, beta);
+            
+            if (nextIndex !== -1) {
+                path.push(nodes[nextIndex]);
+                visited.add(nextIndex);
+            } else {
+                break; // 无法继续构建路径
+            }
+        }
+        
+        paths.push(path);
+    }
+    
+    return paths;
+}
+
+// 选择下一个节点
+function selectNextNode(currentIndex, visited, nodes, pheromone, alpha, beta) {
+    const probabilities = [];
+    let totalProb = 0;
+    
+    for (let i = 0; i < nodes.length; i++) {
+        if (!visited.has(i)) {
+            const distance = calculateDistance(nodes[currentIndex], nodes[i]);
+            const pheromoneVal = pheromone[`${currentIndex}-${i}`] || 1.0;
+            const heuristic = 1 / (distance + 0.001); // 避免除零
+            const prob = Math.pow(pheromoneVal, alpha) * Math.pow(heuristic, beta);
+            probabilities.push({ index: i, probability: prob });
+            totalProb += prob;
+        }
+    }
+    
+    if (probabilities.length === 0) return -1;
+    
+    // 轮盘赌选择
+    let random = Math.random() * totalProb;
+    for (const item of probabilities) {
+        random -= item.probability;
+        if (random <= 0) {
+            return item.index;
+        }
+    }
+    
+    return probabilities[0].index;
+}
+
+// 运行遗传算法
+function runGeneticAlgorithm(paths) {
+    // 选择
+    const selectedPaths = selection(paths);
+    
+    // 交叉
+    const crossedPaths = crossover(selectedPaths);
+    
+    // 变异
+    const mutatedPaths = mutate(crossedPaths);
+    
+    return mutatedPaths;
+}
+
+// 选择操作
+function selection(paths) {
+    // 基于适应度的轮盘赌选择
+    const fitness = paths.map(path => 1 / (calculatePathLength(path) + 0.001));
+    const totalFitness = fitness.reduce((sum, val) => sum + val, 0);
+    
+    const selected = [];
+    for (let i = 0; i < paths.length; i++) {
+        let random = Math.random() * totalFitness;
+        for (let j = 0; j < paths.length; j++) {
+            random -= fitness[j];
+            if (random <= 0) {
+                selected.push([...paths[j]]);
+                break;
+            }
+        }
+    }
+    
+    return selected;
+}
+
+// 交叉操作
+function crossover(paths) {
+    const crossed = [];
+    const pc = 0.6; // 交叉概率
+    
+    for (let i = 0; i < paths.length; i += 2) {
+        if (i + 1 < paths.length && Math.random() < pc) {
+            // 两点交叉
+            const parent1 = paths[i];
+            const parent2 = paths[i + 1];
+            const point1 = Math.floor(Math.random() * parent1.length);
+            const point2 = Math.floor(Math.random() * parent1.length);
+            const start = Math.min(point1, point2);
+            const end = Math.max(point1, point2);
+            
+            // 生成子代
+            const child1 = parent1.slice(0, start).concat(
+                parent2.slice(start, end),
+                parent1.slice(end)
+            );
+            const child2 = parent2.slice(0, start).concat(
+                parent1.slice(start, end),
+                parent2.slice(end)
+            );
+            
+            crossed.push(child1, child2);
+        } else {
+            crossed.push([...paths[i]]);
+            if (i + 1 < paths.length) {
+                crossed.push([...paths[i + 1]]);
+            }
+        }
+    }
+    
+    return crossed;
+}
+
+// 变异操作
+function mutate(paths) {
+    const mutated = paths.map(path => {
+        const pm = 0.1; // 变异概率
+        if (Math.random() < pm) {
+            // 随机交换两个节点
+            const mutatedPath = [...path];
+            const index1 = Math.floor(Math.random() * path.length);
+            const index2 = Math.floor(Math.random() * path.length);
+            
+            if (index1 !== index2) {
+                [mutatedPath[index1], mutatedPath[index2]] = [mutatedPath[index2], mutatedPath[index1]];
+            }
+            
+            return mutatedPath;
+        }
+        return [...path];
+    });
+    
+    return mutated;
+}
+
+// 计算适应度
+function calculateFitness(paths) {
+    return paths.map(path => calculatePathLength(path));
+}
+
+// 更新信息素
+function updatePheromone(pheromone, paths, fitness, rho) {
+    const nodes = [...bridges, ...yards];
+    
+    // 挥发
+    for (const key in pheromone) {
+        pheromone[key] *= (1 - rho);
+    }
+    
+    // 增加信息素
+    for (let i = 0; i < paths.length; i++) {
+        const path = paths[i];
+        const length = fitness[i];
+        const delta = 1 / length;
+        
+        for (let j = 0; j < path.length - 1; j++) {
+            const fromIndex = nodes.indexOf(path[j]);
+            const toIndex = nodes.indexOf(path[j + 1]);
+            const key = `${fromIndex}-${toIndex}`;
+            pheromone[key] = (pheromone[key] || 0) + delta;
+        }
+    }
+}
+
+// 计算路径长度
+function calculatePathLength(path) {
+    let length = 0;
+    for (let i = 0; i < path.length - 1; i++) {
+        length += calculateDistance(path[i], path[i + 1]);
+    }
+    return length / 100; // 转换为公里
+}
+
+// 计算两点距离
+function calculateDistance(point1, point2) {
+    const dx = point1.x - point2.x;
+    const dy = point1.y - point2.y;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+// 计算成本
+function calculateCosts() {
+    const truckNum = parseInt(document.getElementById('truckNum').value);
+    
+    // 固定成本：每辆集卡50万元
+    fixedCost = truckNum * 50;
+    
+    // 可变成本：每公里10元
+    variableCost = bestPathLength * 10 / 10000; // 转换为万元
+    
+    // 惩罚成本：延误惩罚
+    penaltyCost = Math.max(0, (bestPathLength - 5) * 2); // 超过5公里每公里罚款2万元
+    
+    totalCost = fixedCost + variableCost + penaltyCost;
+}
+
+// 更新UI
+function updateUI() {
+    document.getElementById('bestPathLength').textContent = bestPathLength.toFixed(2);
+    document.getElementById('fixedCost').textContent = fixedCost.toFixed(2);
+    document.getElementById('variableCost').textContent = variableCost.toFixed(2);
+    document.getElementById('penaltyCost').textContent = penaltyCost.toFixed(2);
+    document.getElementById('totalCost').textContent = totalCost.toFixed(2);
+    
+    // 更新性能指标
+    document.getElementById('avgPath').textContent = (bestPathLength / trucks.length).toFixed(2) + ' km';
+    document.getElementById('jobTime').textContent = (bestPathLength / 30 * 60).toFixed(0) + ' min'; // 假设平均速度30km/h
+    document.getElementById('utilization').textContent = '95%'; // 模拟值
+    document.getElementById('convSpeed').textContent = currentIteration + ' iter';
+}
+
+// 更新收敛曲线
+function updateConvergenceChart() {
+    convergenceChart.data.labels.push(currentIteration);
+    convergenceChart.data.datasets[0].data.push(totalCost);
+    convergenceChart.data.datasets[1].data.push(bestPathLength);
+    
+    // 限制数据点数量
+    if (convergenceChart.data.labels.length > 50) {
+        convergenceChart.data.labels.shift();
+        convergenceChart.data.datasets[0].data.shift();
+        convergenceChart.data.datasets[1].data.shift();
+    }
+    
+    convergenceChart.update();
+}
+
+// 日志函数
+function log(message) {
+    const logPanel = document.getElementById('logPanel');
+    const time = new Date().toLocaleTimeString();
+    const logEntry = document.createElement('div');
+    logEntry.innerHTML = `[${time}] ${message}`;
+    logPanel.appendChild(logEntry);
+    logPanel.scrollTop = logPanel.scrollHeight;
+}
+
+// 启动仿真
+function startSimulation() {
+    if (!simulationRunning) {
+        simulationRunning = true;
+        simulationPaused = false;
+        currentIteration = 0;
+        bestPath = [];
+        bestPathLength = Infinity;
+        totalCost = 0;
+        
+        // 重置UI
+        document.getElementById('iteration').textContent = '0';
+        document.getElementById('bestPathLength').textContent = '0';
+        document.getElementById('fixedCost').textContent = '0';
+        document.getElementById('variableCost').textContent = '0';
+        document.getElementById('penaltyCost').textContent = '0';
+        document.getElementById('totalCost').textContent = '0';
+        
+        // 重置图表
+        convergenceChart.data.labels = [];
+        convergenceChart.data.datasets[0].data = [];
+        convergenceChart.data.datasets[1].data = [];
+        convergenceChart.update();
+        
+        // 重置日志
+        document.getElementById('logPanel').innerHTML = '<div class="text-gray-500">系统初始化完成，等待启动仿真...</div>';
+        
+        // 重新初始化模型
+        initPortModel();
+        drawMap();
+        
+        // 显示仿真状态
+        document.getElementById('simulationStatus').classList.remove('hidden');
+        
+        // 记录启动日志
+        log('🚀 启动仿真...');
+        
+        // 开始算法
+        runGAACO();
+    }
+}
+
+// 暂停仿真
+function pauseSimulation() {
+    simulationPaused = !simulationPaused;
+    if (simulationPaused) {
+        document.getElementById('simulationStatus').classList.add('hidden');
+        log('⏸️ 仿真暂停');
+    } else {
+        document.getElementById('simulationStatus').classList.remove('hidden');
+        log('▶️ 仿真继续');
+        runGAACO();
+    }
+}
+
+// 重置仿真
+function resetSimulation() {
+    simulationRunning = false;
+    simulationPaused = false;
+    currentIteration = 0;
+    bestPath = [];
+    bestPathLength = Infinity;
+    totalCost = 0;
+    fixedCost = 0;
+    variableCost = 0;
+    penaltyCost = 0;
+    
+    // 重置UI
+    document.getElementById('iteration').textContent = '0';
+    document.getElementById('bestPathLength').textContent = '0';
+    document.getElementById('fixedCost').textContent = '0';
+    document.getElementById('variableCost').textContent = '0';
+    document.getElementById('penaltyCost').textContent = '0';
+    document.getElementById('totalCost').textContent = '0';
+    
+    // 重置图表
+    convergenceChart.data.labels = [];
+    convergenceChart.data.datasets[0].data = [];
+    convergenceChart.data.datasets[1].data = [];
+    convergenceChart.update();
+    
+    // 重置日志
+    document.getElementById('logPanel').innerHTML = '<div class="text-gray-500">系统初始化完成，等待启动仿真...</div>';
+    
+    // 隐藏仿真状态
+    document.getElementById('simulationStatus').classList.add('hidden');
+    
+    // 重新初始化模型
+    initPortModel();
+    drawMap();
+    
+    // 记录重置日志
+    log('🔄 仿真重置完成');
+}
+
+// 加载天津港实例
+function loadTianjin() {
+    // 设置天津港参数
+    document.getElementById('truckNum').value = '15';
+    document.getElementById('bridgeNum').value = '4';
+    document.getElementById('yardNum').value = '10';
+    document.getElementById('maxIter').value = '200';
+    document.getElementById('alpha').value = '1.0';
+    document.getElementById('beta').value = '5.0';
+    document.getElementById('rho').value = '0.4';
+    
+    // 重新初始化模型
+    initPortModel();
+    drawMap();
+    
+    // 记录日志
+    log('🚢 加载天津港实例参数');
+}
+
+// 设置演示模式
+function setDemoMode() {
+    // 设置演示参数
+    document.getElementById('truckNum').value = '5';
+    document.getElementById('bridgeNum').value = '2';
+    document.getElementById('yardNum').value = '4';
+    document.getElementById('maxIter').value = '50';
+    document.getElementById('speed').value = '50';
+    document.getElementById('alpha').value = '1.0';
+    document.getElementById('beta').value = '3.0';
+    document.getElementById('rho').value = '0.3';
+    
+    // 重新初始化模型
+    initPortModel();
+    drawMap();
+    
+    // 记录日志
+    log('🧪 设置演示模式参数');
+}
+
+// 页面加载完成后初始化
+window.onload = init;
+</script>
+</body>
+</html>

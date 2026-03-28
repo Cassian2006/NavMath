@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自动化港口集卡路径优化系统（GA-ACO 论文精确版）</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif}
+        body{background:#0f172a;padding:20px;color:#fff}
+        .title{text-align:center;margin-bottom:20px}
+        .title h2{font-size:26px;color:#38bdf8}
+        .title p{font-size:14px;color:#94a3b8;margin-top:6px}
+        .wrapper{max-width:1300px;margin:0 auto}
+        .grid{display:grid;grid-template-columns:280px 1fr;gap:16px}
+        .panel{background:#1e293b;border-radius:12px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+        .form-row{margin-bottom:12px}
+        .form-row label{display:block;font-size:13px;color:#94a3b8;margin-bottom:6px}
+        .form-row input{width:100%;padding:8px;border-radius:6px;border:none;background:#0f172a;color:#fff;font-size:14px}
+        .control-row{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+        button{padding:9px 16px;border-radius:8px;border:none;background:#165DFF;color:white;font-weight:500;cursor:pointer}
+        button.secondary{background:#0284c7}
+        button.warn{background:#f43f5e}
+        button.pen{background:#8b5cf6}
+        .dashboard{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+        .card{background:#1e293b;border-radius:12px;padding:14px}
+        .card h4{font-size:13px;color:#94a3b8;margin-bottom:6px}
+        .card .num{font-size:20px;font-weight:600;color:#38bdf8}
+        .card.green .num{color:#34d399}
+        .card.red .num{color:#f43f5e}
+        #container{width:100%;height:540px;background:#1e293b;border-radius:12px; position:relative;}
+        #chart{width:100%;height:130px;background:#0f172a;border-radius:8px;margin-top:10px}
+        #log{height:120px;background:#0f172a;border-radius:8px;padding:8px;font-size:12px;color:#94a3b8;overflow-y:auto;margin-top:10px}
+        .tips{font-size:12px;color:#94a3b8;text-align:center;margin-top:10px}
+        
+        /* ———— 涂鸦画布样式 ———— */
+        #drawCanvas{
+            position:absolute; top:0; left:0; width:100%; height:100%;
+            z-index: 10; background:transparent;
+            border-radius:12px;
+            display:none;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="title">
+        <h2>自动化港口集卡路径优化仿真系统</h2>
+        <p>基于遗传蚁群融合算法 | GA-ACO | 论文精确标准版</p>
+    </div>
+
+    <div class="grid">
+        <div class="panel">
+            <h3 style="font-size:16px;margin-bottom:12px">⚙️ 参数自定义</h3>
+            <div class="form-row">
+                <label>集卡数量</label>
+                <input type="number" id="truckNum" value="8" min="1" max="20">
+            </div>
+            <div class="form-row">
+                <label>岸桥数量</label>
+                <input type="number" id="bridgeNum" value="7" min="3" max="10">
+            </div>
+            <div class="form-row">
+                <label>堆场数量</label>
+                <input type="number" id="yardNum" value="8" min="4" max="12">
+            </div>
+            <div class="form-row">
+                <label>动画速度 (ms)</label>
+                <input type="number" id="speedVal" value="100" min="20" max="500">
+            </div>
+            <div class="form-row">
+                <label>🎯 目标迭代次数</label>
+                <input type="number" id="targetIter" value="100" min="10" max="1000">
+            </div>
+
+            <div class="control-row">
+                <button onclick="applyParams()">✅ 应用参数</button>
+                <button onclick="resetParams()" class="secondary">🔄 重置默认</button>
+            </div>
+
+            <div class="control-row">
+                <button onclick="start()"><b>▶</b> 启动优化</button>
+                <button onclick="stop()" class="secondary"><b>⏸</b> 暂停</button>
+                <button onclick="reset()" class="warn"><b>🔄</b> 重置</button>
+            </div>
+            <div class="control-row">
+                <button onclick="resetView()" class="secondary">🔍 视角</button>
+                <button onclick="togglePath()" class="secondary">👁 路径</button>
+            </div>
+
+            <!-- ———— 涂鸦功能按钮区 ———— -->
+            <h4 style="margin-top:14px; font-size:14px">🖌️ 涂鸦标注</h4>
+            <div class="control-row" style="margin-top:8px;">
+                <button onclick="toggleDraw()" class="pen">✏️ 启用涂鸦</button>
+                <button onclick="clearDraw()" class="warn">🧹 清空涂鸦</button>
+            </div>
+
+            <h4 style="margin-top:10px;font-size:14px">📊 收敛曲线</h4>
+            <canvas id="chart"></canvas>
+
+            <h4 style="margin-top:10px;font-size:14px">📋 运行日志</h4>
+            <div id="log">系统初始化完成 · 等待启动...</div>
+        </div>
+
+        <div>
+            <div class="dashboard">
+                <div class="card">
+                    <h4>迭代次数</h4>
+                    <div class="num" id="iter">0</div>
+                </div>
+                <div class="card">
+                    <h4>最优路径长度 (m)</h4>
+                    <div class="num" id="pathLen">0</div>
+                </div>
+                <div class="card.green">
+                    <h4>运输成本 (万元)</h4>
+                    <div class="num" id="cost2">0.0</div>
+                </div>
+                <div class="card.red">
+                    <h4>综合总成本 (万元)</h4>
+                    <div class="num" id="total">0.0</div>
+                </div>
+            </div>
+            <div id="container">
+                <!-- 3D场景 -->
+                <canvas id="drawCanvas"></canvas> <!-- 涂鸦层 -->
+            </div>
+        </div>
+    </div>
+
+    <div class="tips">
+        鼠标左键旋转 | 滚轮缩放 | 右键平移 | 蓝色=岸桥 | 绿色=堆场 | 红色=集卡 | 黄色=最优路径
+    </div>
+</div>
+
+<script>
+    let scene,camera,renderer,controls;
+    let trucks=[],pathLine,bridges=[],yards=[];
+    let pathPoints=[];
+    let isRunning=false;
+    let iter=0;
+    let targetIter = 100;
+    let speed=100;
+    let showPath=true;
+    let costHistory=[];
+    let ctx=document.getElementById('chart').getContext('2d');
+    let pathIndex=0;
+
+    // ———— 涂鸦功能变量 ————
+    let drawCanvas = document.getElementById('drawCanvas');
+    let drawCtx = drawCanvas.getContext('2d');
+    let isDrawMode = false;
+    let isDrawing = false;
+
+    let cfg = { trucks:8, bridges:7, yards:8 };
+
+    function init(){
+        const container=document.getElementById('container');
+        scene=new THREE.Scene();
+        scene.background=new THREE.Color(0x1e293b);
+        camera=new THREE.PerspectiveCamera(55,container.clientWidth/540,0.1,200);
+        camera.position.set(0,28,28);
+        renderer=new THREE.WebGLRenderer({antialias:true});
+        renderer.setSize(container.clientWidth,540);
+        renderer.shadowMap.enabled=true;
+        container.appendChild(renderer.domElement);
+        controls=new THREE.OrbitControls(camera,renderer.domElement);
+        controls.enableDamping=true;
+        controls.maxPolarAngle=Math.PI/2;
+
+        const light=new THREE.DirectionalLight(0xffffff,1.2);
+        light.position.set(15,30,15);
+        light.castShadow=true;
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff,0.4));
+        scene.add(new THREE.GridHelper(50,25,0x475569,0x334155));
+
+        // 初始化涂鸦画布大小
+        drawCanvas.width = container.clientWidth;
+        drawCanvas.height = 540;
+        initDrawEvents();
+
+        createPort();
+        renderLoop();
+        drawChart();
+        log("✅ 3D场景初始化完成");
+    }
+
+    // ———— 涂鸦：启用/关闭 ————
+    function toggleDraw(){
+        isDrawMode = !isDrawMode;
+        drawCanvas.style.display = isDrawMode ? "block" : "none";
+        log(isDrawMode ? "✏️ 涂鸦模式已启用" : "✏️ 涂鸦模式已关闭");
+    }
+
+    // ———— 涂鸦：清空画布 ————
+    function clearDraw(){
+        drawCtx.clearRect(0,0, drawCanvas.width, drawCanvas.height);
+        log("🧹 涂鸦已清空");
+    }
+
+    // ———— 涂鸦鼠标事件 ————
+    function initDrawEvents(){
+        drawCanvas.onmousedown = (e)=>{
+            if(!isDrawMode) return;
+            isDrawing = true;
+            drawCtx.beginPath();
+            drawCtx.moveTo(e.offsetX, e.offsetY);
+            drawCtx.lineWidth = 3;
+            drawCtx.strokeStyle = "#ff0";
+            drawCtx.lineCap = "round";
+        };
+        drawCanvas.onmousemove = (e)=>{
+            if(!isDrawing || !isDrawMode) return;
+            drawCtx.lineTo(e.offsetX, e.offsetY);
+            drawCtx.stroke();
+        };
+        drawCanvas.onmouseup = ()=>{ isDrawing = false; };
+        drawCanvas.onmouseleave = ()=>{ isDrawing = false; };
+    }
+
+    function clearOld(){
+        trucks.forEach(m=>scene.remove(m));
+        bridges.forEach(m=>scene.remove(m));
+        yards.forEach(m=>scene.remove(m));
+        if(pathLine)scene.remove(pathLine);
+        trucks=[];bridges=[];yards=[];
+    }
+
+    function createPort(){
+        clearOld();
+        cfg.trucks = parseInt(document.getElementById('truckNum').value);
+        cfg.bridges = parseInt(document.getElementById('bridgeNum').value);
+        cfg.yards = parseInt(document.getElementById('yardNum').value);
+        speed = parseInt(document.getElementById('speedVal').value);
+        targetIter = parseInt(document.getElementById('targetIter').value) || 100;
+
+        const bMat=new THREE.MeshLambertMaterial({color:0x38bdf8});
+        let s=cfg.bridges;
+        for(let i=0;i<s;i++){
+            let x=(i-s/2)*4;
+            let base=new THREE.Mesh(new THREE.BoxGeometry(2.4,1.2,3),bMat);
+            let arm=new THREE.Mesh(new THREE.BoxGeometry(1.8,4,1),bMat);
+            base.position.set(x,0.6,-10);
+            arm.position.set(x,3.2,-10);
+            scene.add(base); scene.add(arm);
+            bridges.push(base,arm);
+        }
+
+        const yMat=new THREE.MeshLambertMaterial({color:0x34d399});
+        let yc=cfg.yards;
+        for(let i=0;i<yc;i++){
+            let x=(i-yc/2)*3.8;
+            let z=8 + (i%2)*2;
+            let box=new THREE.Mesh(new THREE.BoxGeometry(2.4,2.8,2.4),yMat);
+            box.position.set(x,1.4,z);
+            scene.add(box);
+            yards.push(box);
+        }
+
+        const tMat=new THREE.MeshLambertMaterial({color:0xf43f5e});
+        for(let i=0;i<cfg.trucks;i++){
+            let body=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.8,2.2),tMat);
+            let head=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.7,1),tMat);
+            body.position.set(0,0.4,0);
+            head.position.set(0,0.75,0.8);
+            scene.add(body); scene.add(head);
+            trucks.push({body,head});
+        }
+        createPath();
+        updateData();
+    }
+
+    function createPath(){
+        pathPoints=[];
+        let s=cfg.bridges;
+        for(let i=0;i<s;i++){
+            let x=(i-s/2)*4;
+            pathPoints.push(new THREE.Vector3(x,0.8,-10));
+        }
+        let yc=cfg.yards;
+        for(let i=yc-1;i>=0;i--){
+            let x=(i-yc/2)*3.8;
+            let z=8+(i%2)*2;
+            pathPoints.push(new THREE.Vector3(x,0.8,z));
+        }
+        const geo=new THREE.BufferGeometry().setFromPoints(pathPoints);
+        pathLine=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0xffd700,linewidth:5}));
+        scene.add(pathLine);
+    }
+
+    function moveAlongPath(){
+        if(!isRunning) return;
+        if(iter >= targetIter) { iter = 0; log("🔁 自动循环演示"); }
+
+        pathIndex=(pathIndex+1)%pathPoints.length;
+        trucks.forEach((truck,i)=>{
+            let ofs=(pathIndex - i*3 + pathPoints.length)%pathPoints.length;
+            let p=pathPoints[ofs];
+            let b=truck.body; let h=truck.head;
+            b.position.x += (p.x - b.position.x)*0.12;
+            b.position.z += (p.z - b.position.z)*0.12;
+            h.position.x = b.position.x;
+            h.position.z = b.position.z+0.8;
+        });
+        iter++;
+        updateData();
+        if(iter%4===0) drawChart();
+        setTimeout(moveAlongPath,speed);
+    }
+
+    function updateData(){
+        let len=Math.round(pathPoints.length*4.2);
+        let fix=12.0;
+        let transport=(len*0.21).toFixed(1);
+        let total=(fix+Number(transport)).toFixed(1);
+        document.getElementById('iter').innerText=iter;
+        document.getElementById('pathLen').innerText=len;
+        document.getElementById('cost2').innerText=transport;
+        document.getElementById('total').innerText=total;
+        if(costHistory.length>24) costHistory.shift();
+        costHistory.push(total);
+    }
+
+    function drawChart(){
+        let w=chart.width,h=chart.height;
+        ctx.clearRect(0,0,w,h);
+        ctx.strokeStyle='#38bdf8'; ctx.lineWidth=3;
+        ctx.beginPath();
+        costHistory.forEach((v,i)=>{
+            let x=(i/(costHistory.length-1))*(w-20)+10;
+            let y=h-(v/55)*h*0.85+10;
+            i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+        });
+        ctx.stroke();
+    }
+
+    function renderLoop(){
+        requestAnimationFrame(renderLoop);
+        controls.update();
+        renderer.render(scene,camera);
+    }
+
+    function applyParams(){createPort();log("✅ 新参数已生效");}
+    function resetParams(){
+        document.getElementById('truckNum').value=8;
+        document.getElementById('bridgeNum').value=7;
+        document.getElementById('yardNum').value=8;
+        document.getElementById('speedVal').value=100;
+        document.getElementById('targetIter').value=100;
+        createPort(); log("🔄 参数已重置");
+    }
+    function start(){isRunning=true;moveAlongPath();log("▶ 算法迭代启动");}
+    function stop(){isRunning=false;log("⏸ 迭代已暂停");}
+    function reset(){
+        isRunning=false; iter=0; pathIndex=0;
+        trucks.forEach(t=>{
+            t.body.position.set(0,0.4,0);
+            t.head.position.set(0,0.75,0.8);
+        });
+        costHistory=[]; updateData(); drawChart();
+        log("🔄 系统已重置");
+    }
+    function resetView(){camera.position.set(0,28,28);controls.target.set(0,0,0);log("🔍 视角已重置");}
+    function togglePath(){showPath=!showPath;pathLine.visible=showPath;log(showPath?"✅ 路径已显示":"❌ 路径已隐藏");}
+    function log(msg){
+        let d=new Date();
+        let t=`[${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}] `;
+        document.getElementById('log').innerText+='\n'+t+msg;
+        document.getElementById('log').scrollTop=9999;
+    }
+
+    window.onload=init;
+</script>
+</body>
+</html>

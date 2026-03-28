@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>集装箱码头集卡-岸桥-场桥联合调度 3D动态演示</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif}
+        body{
+            background:linear-gradient(135deg,#050a18,#0a142b,#0d1b3a);
+            color:#fff;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            padding:20px;
+            overflow:hidden;
+            min-height:100vh;
+        }
+        *{cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="white"><circle cx="8" cy="8" r="6" fill="%2300ffff"/></svg>'),auto!important;}
+        button:hover{cursor: pointer!important;}
+
+        .title{
+            font-size:28px;
+            color:#00ffff;
+            margin-bottom:15px;
+            text-shadow:0 0 15px #00ffff,0 0 25px #0088ff;
+            letter-spacing:2px;
+            font-weight:bold;
+            animation: titleGlow 3s infinite alternate;
+        }
+        @keyframes titleGlow {
+            0%{text-shadow:0 0 10px #0ff,0 0 20px #08f;}
+            100%{text-shadow:0 0 20px #0ff,0 0 40px #08f;}
+        }
+
+        .container{display:flex;gap:20px;align-items:flex-start;}
+        #canvasWrapper{
+            position:relative;
+            width:850px;height:550px;
+        }
+        #canvas{
+            width:100%;height:100%;
+            background:linear-gradient(160deg,#0c1a35,#102042);
+            border:2px solid #00aaff;
+            border-radius:16px;
+            position:relative;overflow:hidden;
+            perspective:1600px;
+            cursor: grab;
+            box-shadow:0 0 30px rgba(0,170,255,0.3);
+            transition: all 0.3s;
+        }
+        #canvas:hover{
+            box-shadow:0 0 45px rgba(0,170,255,0.45);
+        }
+        #drawCanvas{
+            position:absolute;
+            top:0;left:0;
+            width:850px;height:550px;
+            z-index:9999;
+            pointer-events:auto;
+        }
+        #scene{
+            width:100%;height:100%;position:relative;
+            transform-style:preserve-3d;
+            transform:rotateX(30deg) rotateY(25deg) scale(0.85);
+            transition: transform 0.07s ease-out;
+        }
+        .ground{
+            position:absolute;width:800px;height:800px;
+            top:300px;left:50%;transform:translateX(-50%) rotateX(90deg);
+            background:linear-gradient(rgba(0,160,255,0.18) 1px,transparent 1px),
+                        linear-gradient(90deg,rgba(0,160,255,0.18) 1px,transparent 1px);
+            background-size:35px 35px;
+            z-index:1;
+        }
+
+        .axis{position:absolute;transform-origin:center center;z-index:100;box-shadow:0 0 8px currentColor;animation: axisPulse 2s infinite;}
+        @keyframes axisPulse {0%{opacity:0.7;}50%{opacity:1;}100%{opacity:0.7;}}
+        .axis-x{width:400px;height:3px;background:#ff3333;top:300px;left:50%;transform:translateX(-50%) rotateX(90deg);}
+        .axis-y{width:3px;height:400px;background:#33ff33;top:100px;left:50%;transform:translateX(-50%) rotateX(90deg);}
+        .axis-z{width:3px;height:300px;background:#3333ff;top:100px;left:50%;transform:translateX(-50%);}
+        .axis-label{position:absolute;color:#fff;font-size:14px;font-weight:bold;text-shadow:0 0 5px #000;z-index:200;}
+
+        .dim{
+            position:absolute;
+            color:#00ffcc;
+            font-size:12px;
+            background:rgba(0,20,40,0.8);
+            padding:3px 6px;
+            border-radius:4px;
+            z-index:200;
+            border:1px solid #00aaff;
+            animation: dimFade 3s infinite;
+        }
+        @keyframes dimFade {0%{opacity:0.8;}50%{opacity:1;}100%{opacity:0.8;}}
+
+        .panel{
+            width:290px;height:550px;
+            background:rgba(16,30,60,0.85);
+            backdrop-filter:blur(10px);
+            border:2px solid rgba(0,136,255,0.4);
+            border-radius:16px;
+            padding:22px;
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+            box-shadow:0 8px 32px rgba(0,136,255,0.15);
+            transition: 0.3s;
+        }
+        .panel:hover{transform: translateY(-3px);box-shadow:0 12px 40px rgba(0,136,255,0.25);}
+        .panel h3{
+            color:#00ddff;
+            border-bottom:2px solid #0099ff;
+            padding-bottom:10px;
+            font-size:18px;
+            text-shadow:0 0 8px #00ddff;
+        }
+        .data{
+            padding:11px;
+            background:rgba(27,42,80,0.7);
+            border-left:4px solid #00aaff;
+            border-radius:8px;
+            font-size:15px;
+            transition:all 0.3s;
+        }
+        .data:hover{transform: translateX(4px);background:rgba(30,45,85,0.8);}
+        .data span{color:#00ffcc;font-weight:bold;animation: textFlash 1.5s infinite alternate;}
+        @keyframes textFlash {0%{text-shadow:0 0 3px #0ff;}100%{text-shadow:0 0 8px #0ff;}}
+        .data.highlight{
+            border-left-color:#ff3366;
+            background:rgba(37,47,80,0.8);
+            box-shadow:0 0 10px rgba(255,51,102,0.15);
+            animation: highlightPulse 2s infinite;
+        }
+        @keyframes highlightPulse {0%{box-shadow:0 0 8px #f36;}50%{box-shadow:0 0 16px #f36;}100%{box-shadow:0 0 8px #f36;}}
+        .desc{
+            font-size:13px;
+            color:#cceeff;
+            line-height:1.5;
+            background:rgba(21,34,63,0.7);
+            padding:10px;
+            border-radius:8px;
+            border:1px solid rgba(0,170,255,0.2);
+        }
+
+        /* 使用说明面板 */
+        .guide{
+            margin-top:20px;
+            width:1180px;
+            background:rgba(16,30,60,0.85);
+            backdrop-filter:blur(10px);
+            border:2px solid rgba(0,136,255,0.4);
+            border-radius:16px;
+            padding:18px 24px;
+            color:#cceeff;
+            font-size:14px;
+            line-height:1.7;
+            display:flex;
+            flex-wrap:wrap;
+            gap:16px 30px;
+        }
+        .guide h4{
+            color:#00ddff;
+            font-size:16px;
+            margin-bottom:6px;
+            width:100%;
+        }
+        .guide-item{
+            flex:1;
+            min-width:220px;
+        }
+        .guide strong{
+            color:#00ffcc;
+        }
+
+        .controls{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+        button{
+            padding:11px 24px;
+            background:linear-gradient(90deg,#0088ff,#00aaff);
+            color:white;
+            border:none;
+            border-radius:10px;
+            font-size:15px;
+            cursor:pointer;
+            transition:all 0.3s;
+            box-shadow:0 4px 15px rgba(0,136,255,0.3);
+            position:relative;
+            overflow:hidden;
+        }
+        button::after{
+            content:'';position:absolute;top:0;left:-100%;
+            width:100%;height:100%;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);
+            transition:0.5s;
+        }
+        button:hover::after{left:100%;}
+        button:hover{
+            transform:translateY(-3px) scale(1.05);
+            box-shadow:0 6px 25px rgba(0,136,255,0.5);
+        }
+        button:active{transform: translateY(0) scale(0.98);}
+        #pause{background:linear-gradient(90deg,#ff9900,#ffb700);}
+        #reset{background:linear-gradient(90deg,#22bb44,#33cc55);}
+        #drawBtn{background:linear-gradient(90deg,#ff3366,#ff5588);}
+        #eraseBtn{background:linear-gradient(90deg,#777,#999);}
+        #clearDraw{background:linear-gradient(90deg,#444,#666);}
+
+        .ship{position:absolute;top:120px;left:150px;transform-style:preserve-3d;z-index:2;animation: shipFloat 4s infinite ease-in-out;}
+        @keyframes shipFloat {0%{transform:translateZ(10px);}50%{transform:translateZ(18px);}100%{transform:translateZ(10px);}}
+        .ship-body{width:180px;height:60px;background:#2a3d66;border-radius:8px 50px 50px 8px;transform:translateZ(15px);box-shadow:0 0 10px rgba(0,170,255,0.2);}
+        .ship-deck{width:160px;height:50px;background:#3b4d7a;position:absolute;top:5px;left:10px;transform:translateZ(25px);}
+
+        .qc{position:absolute;top:100px;left:300px;transform-style:preserve-3d;z-index:5;}
+        .qc-pillar{width:20px;height:160px;background:#ff3366;transform:translateZ(10px);box-shadow:0 0 8px #ff3366;}
+        .qc-beam{width:80px;height:12px;background:#ff5577;position:absolute;top:20px;left:-30px;transform:translateZ(20px);}
+        .qc-hook{width:12px;height:25px;background:#ff7799;position:absolute;top:32px;left:-6px;transform:translateZ(25px);animation: qcWork 1.5s infinite;}
+        @keyframes qcWork {0%{box-shadow:0 0 5px #f36;}50%{box-shadow:0 0 15px #f36;}100%{box-shadow:0 0 5px #f36;}}
+
+        .truck{position:absolute;left:300px;top:260px;transform-style:preserve-3d;transition:all 2s linear;z-index:9999 !important;}
+        .truck-head{width:22px;height:26px;background:#00ff88;transform:translateZ(10px);box-shadow:0 0 8px #00ff88;animation: truckLight 2s infinite;}
+        @keyframes truckLight {0%{box-shadow:0 0 5px #0f8;}50%{box-shadow:0 0 18px #0f8;}100%{box-shadow:0 0 5px #0f8;}}
+        .truck-body{width:32px;height:26px;background:#00dd77;position:absolute;left:22px;transform:translateZ(10px);}
+        .wheel{width:8px;height:8px;background:#777;border-radius:50%;position:absolute;top:20px;transform:translateZ(-5px);z-index:-1;}
+
+        .box{position:absolute;top:-24px;left:12px;width:30px;height:24px;background:#ffdd00;display:none;transform:translateZ(12px);z-index:9999;box-shadow:0 0 10px #ffdd00;animation: boxGlow 1.5s infinite;}
+        @keyframes boxGlow {0%{box-shadow:0 0 8px #fd0;}50%{box-shadow:0 0 20px #fd0;}100%{box-shadow:0 0 8px #fd0;}}
+
+        .yc{position:absolute;bottom:100px;right:200px;transform-style:preserve-3d;z-index:5;}
+        .yc-p1{width:18px;height:140px;background:#ffaa00;transform:translateZ(10px);box-shadow:0 0 8px #ffaa00;}
+        .yc-p2{width:18px;height:140px;background:#ffaa00;position:absolute;left:60px;transform:translateZ(10px);}
+        .yc-beam{width:78px;height:12px;background:#ffbb11;position:absolute;top:20px;transform:translateZ(20px);}
+        .yc-hook{width:12px;height:25px;background:#ffcc22;position:absolute;top:32px;left:33px;transform:translateZ(25px);animation: ycWork 1.8s infinite;}
+        @keyframes ycWork {0%{box-shadow:0 0 5px #fa0;}50%{box-shadow:0 0 15px #fa0;}100%{box-shadow:0 0 5px #fa0;}}
+
+        .yard{position:absolute;bottom:100px;right:120px;transform-style:preserve-3d;width:240px;height:160px;background:#2a3d66;border-radius:8px;transform:translateZ(15px);z-index:2;box-shadow:0 0 15px rgba(0,170,255,0.15);}
+        .yard-text{position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);color:#00eeff;font-size:14px;text-shadow:0 0 8px #00eeff;animation: yardText 3s infinite;}
+        @keyframes yardText {0%{text-shadow:0 0 5px #0ef;}50%{text-shadow:0 0 15px #0ef;}100%{text-shadow:0 0 5px #0ef;}}
+
+        .label{position:absolute;color:#fff;font-size:14px;text-shadow:0 0 8px #000;z-index:10;transition:0.2s;}
+        .label:hover{transform: scale(1.1);color:#0ff;}
+    </style>
+</head>
+
+<body>
+    <div class="title">集装箱码头 集卡-岸桥-场桥 联合调度 3D动态演示</div>
+    <div class="container">
+        <div id="canvasWrapper">
+            <canvas id="drawCanvas"></canvas>
+            <div id="canvas">
+                <div id="scene">
+                    <div class="ground"></div>
+                    <div class="axis axis-x"></div><div class="axis axis-y"></div><div class="axis axis-z"></div>
+                    <div class="axis-label" style="top:290px;left:700px;">X轴（长）</div>
+                    <div class="axis-label" style="top:100px;left:720px;">Y轴（宽）</div>
+                    <div class="axis-label" style="top:120px;left:52%;">Z轴（高）</div>
+
+                    <div class="dim" style="top:200px;left:200px;">场景：850×550px</div>
+                    <div class="dim" style="top:320px;left:300px;">集卡：54×26×20px</div>
+                    <div class="dim" style="top:130px;left:300px;">岸桥：80×160×20px</div>
+                    <div class="dim" style="bottom:130px;right:150px;">堆场：240×160×30px</div>
+                    
+                    <div class="label" style="top:100px;left:210px;">🚢 船舶</div>
+                    <div class="label" style="top:80px;left:300px;">🏗️ 岸桥QC</div>
+                    <div class="label" style="bottom:80px;right:200px;">🏗️ 场桥YC</div>
+                    <div class="label" style="bottom:80px;right:120px;">📦 堆场</div>
+                    
+                    <div class="ship"><div class="ship-body"></div><div class="ship-deck"></div></div>
+                    <div class="qc"><div class="qc-pillar"></div><div class="qc-beam"></div><div class="qc-hook"></div></div>
+                    <div class="yard"><div class="yard-text">堆箱区（4箱区）</div></div>
+                    <div class="yc"><div class="yc-p1"></div><div class="yc-p2"></div><div class="yc-beam"></div><div class="yc-hook"></div></div>
+                    <div class="truck" id="truck">
+                        <div class="truck-head"></div><div class="truck-body"></div>
+                        <div class="wheel" style="left:6px"></div><div class="wheel" style="left:38px"></div><div class="wheel" style="left:56px"></div>
+                        <div class="box" id="box"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>📊 实时调度监控中心</h3>
+            <div class="data">当前状态：<span id="state">准备就绪</span></div>
+            <div class="data">作业步骤：<span id="step">0</span>/4</div>
+            <div class="data">运行时间：<span id="time">0</span> s</div>
+            <div class="data">集卡状态：<span id="truckSta">待命</span></div>
+            <div class="data">岸桥状态：<span id="qcSta">空闲</span></div>
+            <div class="data">场桥状态：<span id="ycSta">空闲</span></div>
+            <div class="data highlight">🎯 优化目标：<span>运输+等待时间加权和最小</span></div>
+            <div class="desc">
+                ✅ 论文参数：<br>
+                • 进口箱110个、出口箱100个<br>
+                • 堆场：4个箱区<br>
+                • 最优时间：3392.74 min<br>
+                • 权重：α₁=0.6，α₂=0.4
+            </div>
+        </div>
+    </div>
+
+    <!-- 使用说明 -->
+    <div class="guide">
+        <h4>📖 使用说明</h4>
+        <div class="guide-item">
+            <strong>🖱️ 左键：</strong>涂鸦/标注
+        </div>
+        <div class="guide-item">
+            <strong>🖱️ 右键：</strong>360°旋转视角
+        </div>
+        <div class="guide-item">
+            <strong>🖱️ 滚轮：</strong>放大/缩小场景
+        </div>
+        <div class="guide-item">
+            <strong>▶️ 开始：</strong>自动运行调度流程
+        </div>
+        <div class="guide-item">
+            <strong>✏️ 涂鸦：</strong>在画面上标注讲解
+        </div>
+        <div class="guide-item">
+            <strong>🔄 重置：</strong>恢复初始视角与状态
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="start">▶ 开始演示</button>
+        <button id="pause">⏸ 暂停</button>
+        <button id="reset">🔄 重置</button>
+        <button id="drawBtn">✏️ 涂鸦</button>
+        <button id="eraseBtn">🧽 橡皮擦</button>
+        <button id="clearDraw">🗑️ 清空涂鸦</button>
+    </div>
+
+    <script>
+        const truck = document.getElementById("truck");
+        const box = document.getElementById("box");
+        const scene = document.getElementById("scene");
+        const canvas = document.getElementById("canvas");
+        const drawCanvas = document.getElementById('drawCanvas');
+        const ctx = drawCanvas.getContext('2d');
+        
+        drawCanvas.width = 850;
+        drawCanvas.height = 550;
+        
+        let isRun = false, currentStep = 0, startTime;
+        let isDrag = false, lastX, lastY, rotateX = 30, rotateY = 25, scale = 0.85;
+        let isDrawing = false, drawMode = 'draw';
+
+        const POS = {
+            qc: { left: "300px", top: "260px" },
+            yard: { left: "540px", top: "360px" }
+        };
+
+        function updateTransform() {
+            scene.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})`;
+        }
+
+        function demo() {
+            if (!isRun) return;
+            document.getElementById("time").innerText = Math.floor((Date.now() - startTime) / 1000);
+            
+            switch (currentStep) {
+                case 0:
+                    document.getElementById("state").innerText = "岸桥卸船作业";
+                    document.getElementById("qcSta").innerText = "工作中";
+                    box.style.display = "block";
+                    document.getElementById("step").innerText = 1;
+                    setTimeout(() => { currentStep = 1; demo(); }, 2000);
+                    break;
+                case 1:
+                    document.getElementById("state").innerText = "集卡重载前往堆场";
+                    document.getElementById("truckSta").innerText = "重载运输";
+                    truck.style.left = POS.yard.left;
+                    truck.style.top = POS.yard.top;
+                    document.getElementById("step").innerText = 2;
+                    setTimeout(() => { currentStep = 2; demo(); }, 2000);
+                    break;
+                case 2:
+                    document.getElementById("state").innerText = "场桥堆箱作业";
+                    document.getElementById("ycSta").innerText = "工作中";
+                    box.style.display = "none";
+                    document.getElementById("step").innerText = 3;
+                    setTimeout(() => { currentStep = 3; demo(); }, 2000);
+                    break;
+                case 3:
+                    document.getElementById("state").innerText = "集卡空载返回岸边";
+                    document.getElementById("truckSta").innerText = "空载返回";
+                    truck.style.left = POS.qc.left;
+                    truck.style.top = POS.qc.top;
+                    document.getElementById("step").innerText = 4;
+                    setTimeout(() => { currentStep = 0; demo(); }, 2000);
+                    break;
+            }
+        }
+
+        function btnEffect(btn){
+            btn.style.transform = "scale(0.95)";
+            setTimeout(()=>btn.style.transform="scale(1)",100);
+        }
+
+        document.getElementById("start").onclick = (e) => { 
+            btnEffect(e.target);
+            if (isRun) return; isRun = true; startTime = Date.now(); demo(); 
+        }
+        document.getElementById("pause").onclick = (e) => { 
+            btnEffect(e.target);
+            isRun = false; document.getElementById("state").innerText = "已暂停"; 
+        }
+        document.getElementById("reset").onclick = (e) => { 
+            btnEffect(e.target);
+            isRun = false; currentStep = 0;
+            truck.style.left = POS.qc.left; truck.style.top = POS.qc.top; box.style.display = "none";
+            document.getElementById("state").innerText = "准备就绪";
+            document.getElementById("step").innerText = 0;
+            document.getElementById("time").innerText = 0;
+            document.getElementById("truckSta").innerText = "待命";
+            document.getElementById("qcSta").innerText = "空闲";
+            document.getElementById("ycSta").innerText = "空闲";
+            rotateX = 30; rotateY = 25; scale = 0.85; updateTransform();
+        };
+
+        canvas.onmousedown = (e) => {
+            isDrag = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            canvas.style.cursor = "grabbing";
+            e.preventDefault();
+        };
+        drawCanvas.onmousedown = (e) => {
+            if(e.button === 2){
+                isDrag = true;
+                lastX = e.clientX;
+                lastY = e.clientY;
+                canvas.style.cursor = "grabbing";
+                e.preventDefault();
+            }else{
+                isDrawing = true;
+                ctx.beginPath();
+                ctx.moveTo(e.offsetX,e.offsetY);
+            }
+        };
+
+        window.onmousemove = (e) => {
+            if(isDrag){
+                let dx = e.clientX - lastX;
+                let dy = e.clientY - lastY;
+                rotateY += dx * 0.5;
+                rotateX += dy * 0.5;
+                updateTransform();
+                lastX = e.clientX;
+                lastY = e.clientY;
+                e.preventDefault();
+            }
+            if(isDrawing){
+                if(drawMode==='draw'){
+                    ctx.globalCompositeOperation='source-over';
+                    ctx.lineWidth=3;ctx.strokeStyle='#ff3';
+                }else{
+                    ctx.globalCompositeOperation='destination-out';
+                    ctx.lineWidth=30;
+                }
+                ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke();
+            }
+        };
+        window.onmouseup = () => { 
+            isDrag = false; 
+            isDrawing = false;
+            canvas.style.cursor = "grab"; 
+        };
+        canvas.onmouseleave = () => { isDrag = false; isDrawing = false; canvas.style.cursor = "grab"; };
+        drawCanvas.onmouseleave = () => { isDrag = false; isDrawing = false; };
+        
+        drawCanvas.oncontextmenu = (e)=>{e.preventDefault();}
+        canvas.oncontextmenu = (e)=>{e.preventDefault();}
+        
+        canvas.onwheel = (e) => {
+            e.preventDefault();
+            scale += e.deltaY > 0 ? -0.02 : 0.02;
+            scale = Math.max(0.3, Math.min(2.0, scale));
+            updateTransform();
+        };
+
+        document.getElementById("drawBtn").onclick = (e)=>{btnEffect(e.target);drawMode='draw';canvas.style.cursor='crosshair';}
+        document.getElementById("eraseBtn").onclick = (e)=>{btnEffect(e.target);drawMode='erase';canvas.style.cursor='move';}
+        document.getElementById("clearDraw").onclick = (e)=>{btnEffect(e.target);ctx.clearRect(0,0,850,550);}
+
+        updateTransform();
+    </script>
+</body>
+</html>

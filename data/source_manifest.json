@@ -1,0 +1,22 @@
+{
+  "raw_materials": [
+    {
+      "id": "advanced_algebra",
+      "display_name": "高等代数",
+      "source_path": "data/raw_materials/advanced_algebra",
+      "description": "高等代数教材与习题解答，适合作为数学类 OCR、章节切分和题目解析样例数据来源。",
+      "file_count": 3,
+      "primary_formats": ["pdf"],
+      "recommended_pipeline": ["ocr", "text_cleaning", "chapter_split", "knowledge_tagging"]
+    },
+    {
+      "id": "ship_security_course",
+      "display_name": "船舶保安课程",
+      "source_path": "data/raw_materials/ship_security_course",
+      "description": "船舶保安课程讲义、题库与规则文件，适合作为后续海事课程知识库与问答扩展的数据来源。",
+      "file_count": 27,
+      "primary_formats": ["pdf", "docx", "doc"],
+      "recommended_pipeline": ["document_parse", "knowledge_extraction", "qa_dataset_build"]
+    }
+  ]
+}

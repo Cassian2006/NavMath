@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from dotenv import load_dotenv
@@ -21,7 +22,7 @@ from app.services.knowledge import (
 )
 from app.services.llm_answer import answer_question_with_kimi
 from app.services.llm_plot import parse_natural_language_plot
-from app.services.math_plot import build_plot_bundle, extract_formula_text, suggest_formula
+from app.services.math_plot import build_plot_bundle, extract_formula_text, extract_formula_texts, suggest_formula
 from app.services.ocr import extract_text_from_image
 from app.services.visualization import build_shape_bundle, build_shape_bundle_from_kind
 
@@ -58,6 +59,7 @@ def looks_like_plot_request(text: str) -> bool:
         "surface",
         "plot",
         "mesh",
+        "=",
     ]
     return any(keyword in normalized for keyword in plot_keywords)
 
@@ -227,7 +229,11 @@ def build_llm_plot(cleaned_text: str) -> tuple[dict[str, Any] | None, str | None
     return plot, llm_formula, parser
 
 
-def compose_analysis(text: str, formula: str | None = None) -> dict[str, Any]:
+def compose_analysis(
+    text: str,
+    formula: str | None = None,
+    previous_plot: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     knowledge_base = load_knowledge_base()
     cleaned_text = normalize_text(text)
     detected_course = detect_course(cleaned_text)
@@ -235,6 +241,7 @@ def compose_analysis(text: str, formula: str | None = None) -> dict[str, Any]:
     matched_knowledge_point = match_knowledge_point(cleaned_text, knowledge_base)
     raw_formula = formula or ""
     detected_formula = suggest_formula(raw_formula) or suggest_formula(cleaned_text)
+    detected_formulas = extract_formula_texts(raw_formula) or extract_formula_texts(cleaned_text)
     formula_record = find_formula_record(detected_formula, knowledge_base) if detected_formula else None
     plot = None
     parser = "local"
@@ -242,7 +249,7 @@ def compose_analysis(text: str, formula: str | None = None) -> dict[str, Any]:
 
     if detected_formula:
         try:
-            plot = build_plot_bundle(detected_formula)
+            plot = build_plot_bundle(raw_formula or cleaned_text, previous_plot=previous_plot)
             plot["parser"] = "local"
         except Exception as exc:
             plot = {
@@ -254,11 +261,35 @@ def compose_analysis(text: str, formula: str | None = None) -> dict[str, Any]:
                 "matlab_code": "",
                 "teaching_tip": "",
                 "parser": "local",
+                "error_detail": str(exc),
             }
     elif cleaned_text:
-        plot = build_shape_bundle(cleaned_text)
-        if plot:
-            plot["parser"] = "local"
+        if previous_plot:
+            try:
+                plot = build_plot_bundle(cleaned_text, previous_plot=previous_plot)
+                plot["parser"] = "local"
+            except Exception as exc:
+                plot = {
+                    "plot_type": "unsupported",
+                    "plot_label": "绘图失败",
+                    "data": [],
+                    "layout": {},
+                    "summary": f"图像修改失败：{exc}",
+                    "matlab_code": "",
+                    "teaching_tip": "",
+                    "parser": "local",
+                    "error_detail": str(exc),
+                }
+        elif plot_requested:
+            try:
+                plot = build_plot_bundle(cleaned_text)
+                plot["parser"] = "local"
+            except Exception:
+                plot = None
+        if plot is None:
+            plot = build_shape_bundle(cleaned_text)
+            if plot:
+                plot["parser"] = "local"
 
     result_formula = extract_formula_text(detected_formula) if detected_formula else None
 
@@ -283,6 +314,7 @@ def compose_analysis(text: str, formula: str | None = None) -> dict[str, Any]:
                 "matlab_code": "",
                 "teaching_tip": "",
                 "parser": "local",
+                "error_detail": str(exc),
             }
 
     if not result_formula and formula_record:
@@ -318,6 +350,7 @@ def compose_analysis(text: str, formula: str | None = None) -> dict[str, Any]:
         "matched_problem": matched_problem,
         "matched_knowledge_point": matched_knowledge_point,
         "formula": result_formula,
+        "formulas": plot.get("formulas", detected_formulas) if plot else detected_formulas,
         "formula_record": formula_record,
         "plot": plot,
         "parser": resolved_parser,
@@ -341,12 +374,19 @@ async def root() -> dict[str, Any]:
 
 
 @app.post("/api/analyze-text")
-async def analyze_text(question_text: str = Form(""), formula: str = Form("")) -> JSONResponse:
+async def analyze_text(
+    question_text: str = Form(""),
+    formula: str = Form(""),
+    previous_plot: str = Form(""),
+) -> JSONResponse:
     merged_text = "\n".join(filter(None, [question_text, formula]))
     try:
-        return JSONResponse(compose_analysis(merged_text, formula or None))
+        plot_payload = json.loads(previous_plot) if previous_plot.strip() else None
+        return JSONResponse(compose_analysis(merged_text, formula or None, plot_payload))
     except RuntimeError as exc:
         return error_response(str(exc))
+    except ValueError as exc:
+        return error_response(str(exc), status_code=400)
     except Exception as exc:
         return error_response(f"后端处理失败: {exc}", status_code=500)
 

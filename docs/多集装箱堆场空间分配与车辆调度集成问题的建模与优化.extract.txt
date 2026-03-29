@@ -1,0 +1,167 @@
+/C8 34 /CK /C8 1 /BA ꜸꜲ /A4 /BA /D8 Æ /CN /CF /BM Vol.34, No.1
+2014 /B1 1 /CV Systems Engineering — Theory & Practice Jan., 2014
+/AM/D8 /AB /AL : 1000-6788(2014)01-0115-07 Æ Æ /D9 /D7/AL : F253 /AM/B3 /AF /A5 /AH :A
+/BU/C8 /BHꜶ /BT/B7/CZ/CF/C0/DH /B9 /B9/D5 /BM/BO /C8/BA /AR/AM /BI/CI /DC /B9/B7 /C6
+/A5 /A2
+1, /B7/A8/BO
+2, /BS /AX /CE
+3
+(1. /BA /DB/CK /C0 /BX /BS /CL /A4/BS/CA , /BA /DB 300387; 2. /C7/BK/BX /BS/BH /AC /C4 /CT /C9/A1/CG/BV /DE /B5 , /AS/BX 110004;
+3. /BA /DB/CK /C0 /BX /BS /C4 /AN /CK/BU /C9/CK /C9/CT /BS/CA , /BA /DB 300387)
+/BA /B5 /AF/BF/BU /DD /BN/CC /CX /CI/BK /CC/BQ /A0 /D2/CH /AJ/C8 /BR Ꜳ /C6/CA /C0 /CX/BT /CN/BZ /BG/B9 . /CD /CI /BG/B9/CH , /BN/CC /CX /CI/BK
+/C8 /B6 /BY/BW , /BR Ꜳ/BT /CU /AW/C2 , /BQ/BY/BCꜶ /DG/BO/CX /CI/BK /CC/CG /BE/CF /CY/BR Ꜳ /C0/CH /AJ /CQ /AD/BJ . /CD/BV /BG/B9 /D4 /A7/CE/AZ
+/CM/CR /AZ/BR/AH/BP , /DI Æ /BR Ꜳ /C6/CA /CBꜼ/C1 /CY/CC/BQ/C5/CW/BN /CN /C1 Ꜹ /D1 /CBꜼ , /AI /BM/CP /AZ/BD/CM/BL /CS makespan. /CJ
+/DF /BG/B9 /C0 /B8 /C3 /AR /CZ /A9 /D7/CB/DC/D0 /B1/B3/B2 /CF /A3/AP /D9/BV /BG/B9 . /CDꜸ/BW/CH , /BB /CO/D5/DC/D0 /B1/B3/B2 /CF/C0/D8/CN /BC /BM
+/CJ/C3 /CS /AQ /D3 CPLEX /B4/AP /BZ/C0 /CM/C3 /D9/CV /BI /DA/BL/D6 , /B2 /CF /AP /BZ /AB/AM/CH 7 /CL/B2/A6 /C0 /CM/C3 /D9 Ꜵ/AT/C7/B2/A6
+/AL /DH /AK /BP /BL/C6 5%, /B0/AG/B4/AR /CZ/C0 /B2 /CF/DJ /C1/C5/BM /C2/D9/DG/CI/CX/BT /BG/B9 .
+/C2/CH/BE /CX /CI/BK /CC/BQ ; /BR Ꜳ /C6/CA ; Tabu search; makespan
+Modeling and optimizing for the integrated problem with
+container storage allocation and truck scheduling
+LI Kun 1, TANG Li-xin 2,C H E N S h u - f a3
+(1. School of Management, Tianjin Polytechnic University, Tianjin 300387, China; 2. The Logistics Institute, Northeastern
+University, Shenyang 110004, China; 3. School of Electrical Engineering and Automation, Tianjin Polytechnic University,
+Tianjin 300387, China)
+Abstract The integrated problem with truck scheduling and storage allocation was researched in this
+paper. Here, the container’s arrival was dynamic and truck was used circularly, so the containers stacking
+position and truck scheduling had to be decided simultaneously. It was formulated as an integer program-
+ming model to minimize makespan of the whole discharging course. In the model, the truck scheduling
+constraints and stack crane operation constraints were also considered. Two stages tabu search algorithm
+was designed for solving above problem. The new method was compared with software CPLEX 11.0. The
+experiment demonstrates that the two stages tabu search obtains optimal solution for seven cases of total
+cases and the average gap of left cases is less than 5%. The experimental results show that this algorithm
+can solve this integrated problem eﬀectively.
+Keywords container storage; truck scheduling; Tabu search; makespan
+1 /B6/B1
+/CR /B6 /AN /B7 /AG /AC /D3 /CZ , /A7 /B3 /AL /DJ /AG /AC /AG /CL/A5 /D1 /AG /AC /B0 /C2 /BN /AM/B6 /AN /B7 /BP/D5 /BN /DH /BR /BN /CQ , /D3 /AG /AC /B0 /C2 /BN /CL/C3 /DJ
+/B2 /CS/DJ/AL /AK /A6 /BK/AK /D3 /AG /AC/A6 /CS , /AI /CL /CS/DJ/A2/CB /D3 /DE /D4 /B6 /AN /B7 /C2 /AN /D1 /AM /BG/D1 . /B6 /AN /B7 /CO/B1 /D5/CH /D3 /A4/CE /CO/D5/BE/DH
+/B2/C9 /DH/C2 /B6 /AN /B7 . /B6 /AN /B7 /CO/B1 /A7 /B3 /CK /CS/DJ /BN (block) /AW /B8 , /AL /DJ /BN /CL/C3 /DJ/CB /B5 /DE /D4 /A9 /BN/AX /B6 /AN /B7 /C2 /B6 Ꜳ /C6 /CG .
+/B1 /AX /CN /B5/DE /D4 /B6 /AN /B7/D3 /AG /AC /B0 /C2 /BN /AM /CO/D5 /BN /DH /BJ /C2 /CY /CT , /DC /AQ/CM /CO/B1/CB/B5 /AM /AG /AC /A2/CB . /AD 1 /AJ /CA /BL /C2 /B6 /AN /B7
+/AG /AC /B8/AM /AD .
+/B6 /AN /B7 /AG /AC Ꜳ /CM /D8 /B5 /AM /CC/CJ/C2 /AN/A0 , /DC /BZ /AL /AK /D8 /B5 , /BP/BH /CV/BJ /D8 /B5 /C8 /B8 /AT /B0 /C9 /A7/C2/CC/CJ/C4 /AN/A0 /D3 /AG /BP /BA
+/CD/B0 /DB /C7 /CC /CL /A1 /AQ /CS /BU /CE , /BV/CR /CM /BM /D6/B6 /B8 /AN/A0 /AT/BG /B6 Ꜳ /BU /CE Ꜳ /BY /C6 . /A2/CB /AL /C0/CH /D3 /AN /D1 /AM /BG/D1/A6 /AL /D3 /AL /AK
+/C2/BK /A4 . Daganzo [1]
+/A2/CI /AM /A9 /C2/A2/CB/CC/CJꜶ /AD/C9 /BB /A1/D7 /CY /D3 /BS /CF /A2 /B3 /A1 /CS/BK/AL /AK /C2/A2/CB /CX/A0 .K i m[2]
+/A4/A2/CB
+/A8 /C1 /A1 /DJ : 2011-12-12
+/BI/BFꜸ /DE : Æ/BG /AT /BU /CT /BT /B4/C6 (71032004)
+/BJ/BB /CG/CS : /DA/D0 (1981–), Ꜹ , /BT /CC , /BV /CF /D4 /BC : /CB /B0 /BCꜶ /CO /CD/CK /CJ /AW , /BV /A8/AP /A9 /CJ /AW ; /DH /DF /BI (1966–), Ꜹ , /BX /CS , /AJ /CM/CB /BY /CC , /BV
+/CF /D4 /BC : /CB /B0 /CO/CZ /CU Æ /C3/CD/CK /D9 /AF , /AB /AZ /CJ /AW /D4/CZ /AN /CD/CK /AW/AB /C3 /CP /CX .
+116 /AW/AB /A5 /BB /D9 /AF /CO /CG /BN /C8 34 /CK
+/CC/CJ /AN/A0 /B0 /AJ m /DJ/AI /BM /B5 /CC/CJ /AN/A0 /D3 /BU /CE /AI /BQ/DE /A1 /C8 /AX /BE /B6 /AN /B7 /AT /B0 /AG /B8 /CE /BJ /AJ /AT Æ /AH /CX /C2 /B0/AP /DE /CX /AB/AT
+/AQ /BL .L e e /C4
+[3− 4]
+/BQ/DE /A1 /BS /CL /A2/CB/AT /B0 /CU /CW /C2 /B0/AP /DE /CX /AB/AT /AQ /BL /AI /CE/CH/C5 /BJ /D7 /CY/CR /AN/A0 /C9 /BM /A1/BM /C3 .
+/CR /CM /CO/B1/C2 /A0 /AH /AT /B0 /D3 /CZ , /CO/B1/CB /B5 /C2/CC/CJ /AN/A0 /CO /C3 /D6 /AI /C0 /C2 /BU /CE /AN/A0 , /CB /B5 /CC/CJ/C2 /CI /A3 /DI /BZ /CF/BA /BZ/CO
+/B1/C2 /B0 /C2/BF /AC . Zhang /C4
+[5]
+/CR/CG /DF /CB /B5 /CC/CJ /AN/A0 /BQ/DE /A1 /B0/AP /DE /CX /AB/AT /AQ /BL /AI /CE/CH /D2 /DI /D5 /BX/D2 /BC/CR /AN/A0 /C9 /BM
+/A1/BM /C3 .K i m [6]
+/CR /C9/CX/B6 /AN /B7 /C2 /AX /CI /BP/BH /CV/BJ /CX/A0 /C8 /B8 /CB /B5 /CX/A0/C9 /BB /A1 /D7 /CH /AQ /BL .N g [7]
+/BU /CE /A1 /C3 /D6 /CS/CB /B5
+/CC/CJ /AN/A0 , /DF /AN/A0 /C2 /DI /C9 /CO /A4 /CL/C3 /DJ /CY /BB/C6 /CG /AD /C0/C2/CO/B1 /AD /C2 /B6 /AN /B7 /BS /CL /AM /A9 /C2 /AQ /A7 /CE /BJ . /B1 /AX /CN /B5 /A7 /B3/DE
+/D4 /B6 /AN /B7/D3 /AG /AC /AT /B0 /BN /AM /CO/B1 /DH /BJ /C2 /CY /CT .V i s[8]
+/B3 /CM /AX /BR /A8 /AN/A0 /C9 /BB /A1/BD /CW /CJ /CH/C8 /BS /CF AGVs (automated
+guided vehicle) /C2/B5/CQ /AB /AQ .K i m /C4
+[9− 10]
+/CR straddle carrier /C2 /AX /CI Ꜳ /CD /AN/A0 /BQ/DE /A1/AQ /BL /AI /C9 /BB /A1 /B6/CE /C2
+/D7 /CY .N i s h i m u r a/C4
+[11]
+/DJ /BE /A1 /CG /DF /AF /B5 /A2 /B3 /AN/A0 /AI /C9 /BB /A1/BD /CW /CJ/D7 /CY /D3 /BM /C3 /BM /AN/A0 .
+/B6 /AN /B7 /CO/B1 /CV/BJ /D8 /B5 /AN/A0 /AM /B5 /DI /CC/CJ /AN/A0 /C7/AT /CD /AJ /CS /BS/DA /C2 /BU /CE , /BJ /DH /AN/A0/DH /BJ /CL /BY /CS/C2 Ꜳ/DG /BN .B i s h
+/C4
+[12]
+/CQ /BN /BS/DH /AN/A0 /B0 /AJ/C3 /B6 /B8 /AN/A0 /D3 /BU /CE , /B0 /DA /BI /C9/AL /DJ /B6 /AN /B7 /CR /CE /CS/DJ/BP /D5 /AK /A8 , /B6 /AN /B7/CK /BK/AK /BG/D1 /AR
+/CK /CO/B1 /CN /B5/DE /D4/CY /D3 /BZ /B6 /AN /B7 /CO/B1 , /AL /DI/CN /B5 /C3 /BN /A4 Ꜽ /CY /D3 /C3 /BU /AK /B6 /AN /B7 . /CR /CM /DF /B6 /B8 /AN/A0 /C2 /BM /C3 ,B i s h /C9
+/BB /A1 /DH/C0 /CM /BD /CW /CJ/D7 /CY/AI /BS /DF /B6 /B8 /AN/A0 /D8 /C3 /AJ /DH /DJ/CI /DE /C2 /AS /AN/A0 /D8/AH /BM /C3 . /D7 /CY/C7 /C3 /C0 /CM /D3 /AM /CR /AB /B5 /DI /CC
+/CJ/C2 /B3 /BG /C5/BS /CF /B6 /AN /B7 /C2/CO /B1 /AK /A8 , /C7/CV /C0 /CM /BM /C3 /C7 /D8 /B5 /AK /A8 /B6 /AN /B7 /C2/B5 /DI /CC/CJ /AN/A0 . Lee, Cao, Shi [13]
+/C4
+/BS/DA/DC /CR/CO/B1/B5 /DI /CC/CJ /AM/B6 /AN /B7 /CO/B1 /CV/BJ /D8 /B5 /B6 /B8 /AN/A0/C1 /C9 /BM /A1 /BU /CE . /DF /B6 /B8 /AN/A0 /C2 /AT Æ /AJ /AX /BE Ꜹ/BH /BQ Ꜷ
+/BW/AR /AM /B5 /DI Ꜷ /C2 /CY /CT/CE /BJ , /C9 /BB /A1 /B0/AP /AX /C0/D7 /CY /BM /C3/B6 /B8 /AN/A0 , /A7 /AG /CR/DF /AN/A0 /AD Ꜳ/BO /AS /CX /C4/D3 /AM /C2 /CF /BY /AG /AP
+/A1/D7 /CY/C2 /CL/BF/BN .
+/A9 Æ /AL /CR/DF /B6 /B8 /AN/A0 /C2 /BU /CE /CN/C8 /C5 /BS/DA/BU /CE /C2 /BN /AH /AL /C0/CL :1 ) /BM /C3 /DF /B6 /B8 /AN/A0 /C2 /D0Ꜳ/C5 /CN Bish /C4 /BS
+/DA /C2 /BU /CE /CL /DC /AM /A9 . /A9 Æ /AL/BU /CE /C2 /B6 /B8 /AN/A0 /C7 /C3 /C0 /CM /AJ /B5 /DI /CC/CJ /AN/A0 , /C7/CV /C0 /CM /AJ /B6 /AN /B7 /CO/B1 /CV/BJ /D8 /B5 /AN
+/A0 . /DC /CR /DB /DH /DJ /C0 /CM/D8/AH /CE/CH /CA/BD /D4/DB/D7 /CY /C9 /BM /BM /C3 , /AI /BS /C7/CV /C0 /CM /BM /C3 /C2 /C2/AF /D0 /CZ /BZ/C7 /C3 /C0 /CM /C8 /CC /DE /A3 /BH
+/CN /B5/CC/CJ/D3/A3 , /CU /AL/B2 [12] /AK /CL /A3 /CS /CR /AB /DH /DJ /AS /AN/A0/DH /BJ /C2 /B6 /ASꜲ Ꜹ .2 ) /CN/AL/B2 [13] /D9 /BU /CE /C2 /A9/AJ /B6 /AN /B7
+/CO/B1 /CV/BJ /D8 /B5 /AM /B5 /DI /CC/CJ /B6 /B8 /AN/A0 , /BV/CR/DF /AN/A0 /DI /DD /C2 /BU /CE/BW /CJ/CS /CL /AM /A9 . /AL/B2 [13] /AD /DC /BU /CE /C2 /AN/A0 /CU /C8 /AC
+/C2 /AJ VRPTW /AN/A0 , /AI /BJ /B6 /B8 /BU /CE /BE /CX /A0 /C9/CX/B6 /AN /B7/AN/A0 , /A9 /AL /A4 /DC /CR /C9/CX/B6 /AN /B7 /C2/CO/B1 /CV/BJ /D8 /B5 /AM /B5 /DI /CC
+/CJ /B6 /B8 /AN/A0 /C9 /BM/BU /CE .
+/A9 /AL /CR /B6 /AN /B7 /CO/B1 /CV/BJ /D8 /B5 /AN/A0 /AM /B5 /DI /CC/CJ /AN/A0 /C9 /BM /A1 /B6 /B8 , /A2/CI/B6 /B8 /AN/A0 /C2 /DI /C9 /C8 /AX /BE Ꜹ/B6 /AN /B7 /C2 /AX
+/BR/AT /B0 /AG /B8 /CE /BJ /AJ /AT Æ /AH /CX /BQ/DE /A1 /DE /CX /AB/AT /AQ /BL /AI /B3 /CM /DF /AN/A0 /C2 /CF /BE /AT /B0 /CU /CW/DJ /BE /A1 /C3 /DJ /DH/C0 /CM /CA/BD /D4/DB
+/D7 /CY (two-phase tabu search, /BL /B7 TPTS) /D3/B1 /C1/DF /AN/A0 /C2 /CB /CI /C3 .
+2 Ꜳ/B0 /DD /AX
+/DC /CR/DF /AN/A0 /C2 /DI /C9 , /BQ/DE /AC /CM /AN/CV
+/AN/A0 /C2 /DE /CX /AB/AT /AQ /BL , /AT Æ /AH /CX /AJ /AX /BE
+Ꜹ/B6 /AN /B7 /C2 /AX /BR/AT /B0 /AG /B8 /CE /BJ , /CJ /A2 /AQ
+/BL /BZ /AX :
+1) /AS /CX
+i, j: /B6 /AN /B7 /DB /CD /DB /AK .
+k: /B1 /AX /CN /B5 /DB /CD /DB /AK .
+l: /CO/B1 /AD /BN /C2 /DB /CD /DB /AK .
+m: /BG/D1 /B6 /AN /B7 /C2 /CX/A0 .
+n: /B1 /AX /CN /B5 /CX/A0 .
+/AP 1 /BK /AW /BH/C7 /BG/AT /D9 /AN /DI/DA /AP
+b: /CO/B1 /AD /CO/D5 /B6 /AN /B7 /C2 /BN /C2 /CX/A0 .
+ri: /A2/CB/CR /B6 /AN /B7 i /C2 /CX/BP /AT /B0 /CE /BJ .
+ti: /B1 /AX /CN /B5 /CY /CT /B6 /AN /B7 i /C2 /CO /CI/CE /BJ .
+λl: /BO /AG /AC /AT /B0 /BN /BZ/CO/B1 /AD l /BN /C2 /CY /CT/CE /BJ .
+δ: /CO/B1/CB /B5 /BO/B1 /AX /CN /B5 /BG/D1 /B6 /AN /B7 /BZ /AS/BN/AX /C2 /CE /BJ .
+di: /B1 /AX /CN /B5 /CY /CT /B6 /AN /B7 i /C2 /CY /CT/CE /BJ .
+˜ti: /CO/B1/CB /B5 /BO/B1 /AX /CN /B5 /BG/D1 /B6 /AN /B7 /C2 /CO /CI/CE /BJ .
+Ci: /B6 /AN /B7 i /A8/D5 /A8 /BZ/CO/B1 /BN/AX /C2 /AG /B8 /CE /BJ .
+/C8 1 /BA /DA/D0 , /C5 : /CT /B7 Ꜵ /B8 /CP/B2 /CW/BK /D9 /B6 /CO /B6 /DJ /CD/CK /B7 /B9 Ꜵ/A1 /C3 /BR /AR /CO/CJ /AW 117
+M : Ꜹ /A9 /BR/C2 /DF /CX .
+2) /CL Ꜷ/AD /A0
+xijk =
+{
+1 /BZ /AF/CN /B5 k /CY /CT /AG /B6 /AN /B7 i /CY /CT /B6 /AN /B7 j
+0 /DA /D5
+k =1 , 2, ··· ,n ; j =1 , 2, ··· ,m ; i ̸= j (1)
+yijl =
+{
+1 /BZ /AF/B6 /AN /B7 i /D3 /B6 /AN /B7 j /C7 /BG /A8/CO/D5 /D3 /CO/B1 l /BN
+0 /DA /D5
+l =1 , 2, ··· ,b ; i, j =1 , 2, ··· ,m (2)
+uik =
+{
+1 /BZ /AF /CO/B1 /CN /B5 k /CY /CT /B6 /AN /B7 i
+0 /DA /D5
+k =1 , 2, ··· ,n ; j =1 , 2, ··· ,m (3)
+vil =
+{
+1 /BZ /AF/B6 /AN /B7 /A8/D8 /B5 /BZ/CO/B1 /AD /C2 l /BN
+0 /DA /D5
+l =1 , 2, ··· ,b ; i =1 , 2, ··· ,m (4)
+3) /CX /BS /AQ /BL
+min max
+i=1,2,··· ,m
+Ci (5)
+Ci = ˜ti + δ, i =1 , 2, ··· ,m (6)
+di =
+b∑
+l=1
+vilλl,i =1 , 2, ··· ,m (7)
+ti ≥ ri,i =1 , 2, ··· ,m (8)
+˜ti ≥ ti + di,i =1 , 2, ··· ,m (9)
+ti + di ≤ M (1 − yijl )+ tj + dj,i , j =1 , 2, ··· ,m ,i ̸= j, l =1 , 2, ··· ,b (10)
+˜ti + δ ≤ M (1 − yijl )+ ˜tj,i , j =1 , 2, ··· ,m ,i ̸= j, l =1 , 2, ··· ,b (11)
+˜ti − di ≤ M (1 − xijk )+ tj,i , j =1 , 2, ··· ,m ,i ̸= j, k =1 , 2, ··· ,n (12)
+n∑
+k=1
+uik =1 ,i =1 , 2, ··· ,m (13)
+b∑
+l=1
+vil =1 ,i =1 , 2, ··· ,m (14)
+xijk ≤ uik,i , j =1 , 2, ··· ,m ,i ̸= j, k =1 , 2, ··· ,n (15)
+xijk ≤ ujk,i , j =1 , 2, ··· ,m ,i ̸= j, k =1 , 2, ··· ,n (16)
+yijl ≤ vil,i , j =1 , 2, ··· ,m ,i ̸= j, l =1 , 2, ··· ,b (17)
+yijl ≤ vjl,i , j =1 , 2, ··· ,m ,i ̸= j, l =1 , 2, ··· ,b (18)
+xijk + xjik ≤ 1,i , j =1 , 2, ··· ,m ,i ̸= j, k =1 , 2, ··· ,n (19)
+xijk + xjik ≥ uik + ujk − 1,i , j =1 , 2, ··· ,m ,i ̸= j, k =1 , 2, ··· ,n (20)
+yijl + yjil ≤ 1,i , j =1 , 2, ··· ,m ,i ̸= j, l =1 , 2, ··· ,b (21)
+yijl + yjil ≥ vil + vjl − 1,i , j =1 , 2, ··· ,m ,i ̸= j, l =1 , 2, ··· ,b (22)
+uik,v il,x ijk ,y ijl ∈{ 0, 1},i , j =1 , 2, ··· ,m ,l =1 , 2, ··· ,b ,k =1 , 2, ··· ,n (23)
+Ci,d i,t i, ˜ti ∈ Z+,i =1 , 2, ··· ,m (24)
+/AT Æ /AH /CX (5) /CO /AX /BE Ꜹ/B6 /AN /B7 /C2 /AX /BR/AT /B0 /AG /B8 /CE /BJ . /CU /CW (6) /CO /BB /D7/AL /DJ /B6 /AN /B7/AG /B8 /CE /BJ /C2/C4 /CJ . /CU /CW
+(7) /AG /CL /BB /D7/AL /DJ /B6 /AN /B7 /C2 /CY /CT/CE /BJ . /CU /CW (8) /AG /CL/AL /DJ /B6 /AN /B7 /BO /AG /AC /AT /B0 /BN /A8 /CY /CT /BZ/CO/B1 /BN /C2 /CE /BJ /CU /CW .
+/CU /CW (9) /AG /CL/AL /DJ /B6 /AN /B7 /A8/CO/B1/CB /B5 /BO /CN /B5 /BG/D1 /BZ/CO/B1 /BN/AX /C2 /CE /BJ /CU /CW . /CU /CW (10) /BI /A9 /AD /A0 , (11) /AG /CL /B6 /AN
+/B7 /A8 /CY /CT /BZ/CO/B1 /AR Ꜽ /CR Ꜽ /BZ Ꜽ/BG/D1 /C2 /AB /D5 . /CU /CW (12) /AG /CL /CO/B1 /CN /B5 /A4 /CL/D3/CY /CT /AG /BG /C3 /DJ /B6 /AN /B7 /AR /D1 Ꜽ /AG /AC

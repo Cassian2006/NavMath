@@ -10,35 +10,34 @@ const emit = defineEmits(["pickExample"]);
 
 const featureCards = [
   {
-    title: "高数可视化",
-    text: "把公式、题干和自然语言描述转换成二维函数或三维曲面演示。",
+    title: "函数可视化",
+    text: "把公式、题干和自然语言描述转换成二维函数或三维图形演示。",
   },
   {
     title: "航运知识问答",
-    text: "优先检索本地题库和知识点，未命中时再进行模型补答。",
+    text: "课本知识点检索",
   },
   {
     title: "MATLAB 代码生成",
-    text: "每次绘图都会同步给出 MATLAB 示例代码，方便课堂演示和课后复现。",
+    text: "附上 MATLAB 代码方便复现与课堂演示",
   },
   {
     title: "结构化数据接入",
-    text: "支持知识点表和题目表导入，后续可以直接接入队友整理的课程数据。",
+    text: "支持知识点表与题目 CSV 导入",
   },
 ];
-
-const architectureNodes = ["用户输入", "本地知识匹配", "智能补答", "结果与图形展示"];
 </script>
 
 <template>
   <section class="hero">
     <article class="hero-copy">
-      <p class="eyebrow">NavMath Vision / 智绘数航</p>
-      <h1>数学可视化与航运知识融合学习辅助系统</h1>
-      <p class="hero-text">
-        当前 MVP 聚焦高等数学与远洋运输业务两门课程，支持知识问答、公式绘图、自然语言绘图和 MATLAB
-        代码生成。
-      </p>
+      <div class="hero-title-lockup">
+        <div class="hero-title-row">
+          <h1>智绘数航</h1>
+          <span class="hero-method-tag">NavMath Vision</span>
+        </div>
+        <p class="hero-subtitle">数学可视化与航运知识融合学习辅助系统</p>
+      </div>
 
       <div class="feature-grid">
         <article v-for="item in featureCards" :key="item.title" class="feature-card">
@@ -46,19 +45,11 @@ const architectureNodes = ["用户输入", "本地知识匹配", "智能补答",
           <span>{{ item.text }}</span>
         </article>
       </div>
-
-      <div class="architecture-board">
-        <p>系统流程</p>
-        <div class="architecture-flow">
-          <span v-for="item in architectureNodes" :key="item">{{ item }}</span>
-        </div>
-      </div>
     </article>
 
     <aside class="hero-panel">
       <p class="eyebrow">快速开始</p>
-      <h2>直接提问或快速试样例</h2>
-      <p>主页面保留正常交互视角。你可以自由输入题目、公式或图形描述，也可以先点一个样例快速测试。</p>
+      <h2>直接提问或先点一条随机示例</h2>
 
       <div class="example-list">
         <button

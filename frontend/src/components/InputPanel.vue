@@ -20,7 +20,7 @@ function handleImageChange(event) {
       <textarea
         v-model="questionText"
         rows="8"
-        placeholder="例如：判断曲面 z = x^2 - y^2 的类型；或直接输入 z = x^2 - y^2；或输入 画一个沿 z 轴开口向上的碗状曲面。"
+        placeholder="例如：判断曲面 z = x^2 - y^2 的类型；或直接输入 z = x^2 - y^2；或输入“画一个沿 z 轴开口向上的碗状曲面”。"
       />
     </label>
 

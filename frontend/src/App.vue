@@ -9,6 +9,7 @@ import { useNavMathVision } from "./composables/useNavMathVision";
 
 const {
   questionText,
+  plotEditText,
   statusText,
   result,
   importState,
@@ -23,11 +24,15 @@ const {
   plotSummary,
   matlabCode,
   teachingTip,
+  plotLayers,
+  plotMeta,
   knowledgeDefinition,
   ocrText,
   demoExamples,
   applySample,
   submitAnalysis,
+  submitPlotEdit,
+  togglePlotLayer,
   onImageChange,
   setPlotTarget,
   uploadKnowledgeCsv,
@@ -71,6 +76,11 @@ const {
       :matlab-code="matlabCode"
       :teaching-tip="teachingTip"
       :plot="result.plot"
+      :plot-layers="plotLayers"
+      :plot-meta="plotMeta"
+      v-model:edit-text="plotEditText"
+      @submit-edit="submitPlotEdit"
+      @toggle-layer="togglePlotLayer"
       @ready="setPlotTarget"
     />
 

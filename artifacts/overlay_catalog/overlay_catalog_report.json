@@ -1,0 +1,302 @@
+[
+  {
+    "pair_index": 1,
+    "left": {
+      "formula": "y = x",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = x^2",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 2,
+    "left": {
+      "formula": "y = x^2",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = 2 - x^2",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 3,
+    "left": {
+      "formula": "y = sin(x)",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = 0",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 4,
+    "left": {
+      "formula": "y = cos(x)",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = x",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 5,
+    "left": {
+      "formula": "y = e^x",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = 2",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 6,
+    "left": {
+      "formula": "y = ln(x)",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = 0",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 7,
+    "left": {
+      "formula": "y = abs(x)",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = 1",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 8,
+    "left": {
+      "formula": "y = x^3",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = x",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 9,
+    "left": {
+      "formula": "y = 1/x",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = x",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 10,
+    "left": {
+      "formula": "y = x^2 - 1",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = 0",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 11,
+    "left": {
+      "formula": "x^2 + y^2 = 1",
+      "plot_type": "curve",
+      "expression_type": "implicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = x",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 12,
+    "left": {
+      "formula": "x^2 + y^2 = 4",
+      "plot_type": "curve",
+      "expression_type": "implicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = 1",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 13,
+    "left": {
+      "formula": "x^2/4 + y^2 = 1",
+      "plot_type": "curve",
+      "expression_type": "implicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = x/2",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 14,
+    "left": {
+      "formula": "x^2 - y^2 = 1",
+      "plot_type": "curve",
+      "expression_type": "implicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = x - 1",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 15,
+    "left": {
+      "formula": "xy = 1",
+      "plot_type": "curve",
+      "expression_type": "implicit2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = x",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 16,
+    "left": {
+      "formula": "x = cos(t), y = sin(t)",
+      "plot_type": "curve",
+      "expression_type": "parametric2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = 0.5",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 17,
+    "left": {
+      "formula": "x = t, y = t^2",
+      "plot_type": "curve",
+      "expression_type": "parametric2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = 2x + 1",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 18,
+    "left": {
+      "formula": "x = cos(t)^3, y = sin(t)^3",
+      "plot_type": "curve",
+      "expression_type": "parametric2d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "y = x",
+      "plot_type": "curve",
+      "expression_type": "explicit2d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 19,
+    "left": {
+      "formula": "z = x^2 + y^2",
+      "plot_type": "surface",
+      "expression_type": "explicit3d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "z = 2",
+      "plot_type": "surface",
+      "expression_type": "explicit3d",
+      "matlab_ok": true
+    }
+  },
+  {
+    "pair_index": 20,
+    "left": {
+      "formula": "z = x^2 - y^2",
+      "plot_type": "surface",
+      "expression_type": "explicit3d",
+      "matlab_ok": true
+    },
+    "right": {
+      "formula": "z = 1",
+      "plot_type": "surface",
+      "expression_type": "explicit3d",
+      "matlab_ok": true
+    }
+  }
+]

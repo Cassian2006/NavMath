@@ -1,0 +1,127 @@
+交通运输系统工程与信息 
+Journal of Transportation Systems Engineering and Information Technology 
+ISSN 1009-6744,CN 11-4520/U 
+ 
+ 
+ 
+ 
+《交通运输系统工程与信息》网络首发论文 
+ 
+题目： 干散货港口卸船作业资源配置与流程优化研究 
+作者： 李海江，赵家鹏，郭静怡，马千里，贾鹏 
+收稿日期： 2025-08-28 
+网络首发日期： 2026-03-26 
+引用格式： 李海江，赵家鹏，郭静怡，马千里，贾鹏．干散货港口卸船作业资源配置与
+流程优化研究[J/OL]．交通运输系统工程与信息. 
+https://link.cnki.net/urlid/11.4520.u.20260326.0954.010 
+ 
+ 
+ 
+ 
+ 
+ 
+网络首发：在编辑部工作流程中，稿件从录用到出版要经历录用定稿、排版定稿、整期汇编定稿等阶
+段。录用定稿指内容已经确定，且通过同行评议、主编终审同意刊用的稿件。排版定稿指录用定稿按照期
+刊特定版式（包括网络呈现版式）排版后的稿件，可暂不确定出版年、卷、期和页码。整期汇编定稿指出
+版年、 卷、 期、 页码均已确定的印刷或数字出版的整期汇编稿件。 录用定稿网络首发稿件内容必须符合 《出
+版管理条例》和《期刊出版管理规定》的有关规定；学术研究成果具有创新性、科学性和先进性，符合编
+辑部对刊文的录用要求，不存在学术不端行为及其他侵权行为；稿件内容应基本符合国家有关书刊编辑、
+出版的技术标准，正确使用和统一规范语言文字、符号、数字、外文字母、法定计量单位及地图标注等。
+为确保录用定稿网络首发的严肃性， 录用定稿一经发布， 不得修改论文题目、 作者、 机构名称和学术内容，
+只可基于编辑规范进行少量文字的修改。 
+出版确认：纸质期刊编辑部通过与《中国学术期刊（光盘版） 》电子杂志社有限公司签约，在《中国
+学术期刊 （网络版） 》 出版传播平台上创办与纸质期刊内容一致的网络版，以单篇或整期出版形式， 在印刷
+出版之前刊发论文的录用定稿、排版定稿、整期汇编定稿。因为《中国学术期刊（网络版） 》是国家新闻出
+版广电总局批准的网络连续型出版物（ISSN 2096-4188，CN 11-6037/Z），所以签约期刊的网络版上网络首
+发论文视为正式出版。 
+ 
+
+ 
+ 
+干散货港口卸船作业资源配置与流程优化研究 
+李海江 a,b，赵家鹏 a,b，郭静怡 a,b，马千里*a,b，贾鹏 a,b 
+（大连海事大学, a.综合交通运输协同创新中心; b.航运经济与管理学院, 辽宁 大连 116026） 
+摘要：干散货港口卸船作业的优化研究对于提升港口作业效率意义重大。 针对干散货港口泊
+位、 卸船机、 堆场货位、 水平运输等全流程的资源配置与作业优化问题， 本文构建了一种基
+于图结构的散货港口作业要素表征方法， 并设计了以最小化作业成本为目标的两阶段混合整
+数规划模型。 首先， 在码头卸船作业阶段， 提出一种 “泊位-卸船机” 协同配置模型， 设计了
+集成异步调度策略的非支配遗传算法的联合求解方法， 实验表明， 该模型可显著降低卸船作
+业能耗，降幅达 14.3%。其次，在堆场作业环节，充分考虑货物堆存期的不确定性和运输路
+径约束，构建了一种“堆场货位分配-水平运输流程”联合调度模型，并提出了一种集成动
+态掩码机制的深度确定性策略梯度求解算法， 结果显示， 该算法显著提升了求解速度， 同时，
+作业时间成本降幅达 21%、 作业能耗成本降幅达26.4%。 本文所提解决方案可以显著降低干
+散货全流程装卸作业成本。 
+关键词：水路运输;作业流程优化；混合整数规划；干散货港口；深度确定性策略梯度算法 
+中图分类号：U691.31                   文献标志码：A 
+ 
+ 
+Research on Resource Allocation and Process Optimization 
+of Unloading Operations in Dry Bulk Ports 
+LI Haijianga,b, ZHAO Jiapenga,b, GUO Jingyia,b, MA Qianli*a,b，JIA Penga,b 
+(a. Collaborative Innovation Center for Transport Studies; b. School of Maritime Economics and 
+Management, Dalian Maritime University, Dalian 116026, Liaoning, China) 
+Abstract: The optimization of unloading operations in dry bulk ports is crucial for enhancing  
+overall port efficiency. To address the integrated resource allocation and scheduling problem 
+encompassing the entire process of berths, unloaders, yard storage slots, and horizontal 
+transportation, this paper proposes a graph -based representation method for port operational 
+elements. A two -stage mixed -integer programming model is developed with the objective of 
+minimizing total operational cost.  First, for the quayside unloading stage, a collaborative "berth -
+unloader" configuration model based on an async hronous operation strategy is proposed. A joint 
+solution method utilizing a Non -dominated Sorting Genetic Algorithm is designed. Experimental 
+results demonstrate that this model significantly reduces unloading energy consumption by 14.3%. 
+Second, for the y ard operations stage, a joint scheduling model for "storage slot allocation and 
+horizontal transportation flow" is constructed, fully considering the uncertainty of cargo dwell time 
+                                                        
+收稿日期：2025-08-28             修回日期：2025-12-31          录用日期：2026-03-19 
+基金项目：国家重点研发计划资助/National Key R&D Program of China(2023YFB4302200)；中央高校基本
+科研业务费专项资金资助/Fundamental Research Funds for the Central Universities(3132025309)。 
+作者简介：李海江（1991- ），男，河北张家口人，副教授。  *通信作者：qianlima@dlmu.edu.cn  
+引用格式：李海江，赵家鹏，马千里，等. 干散货港口卸船作业资源配置与流程优化研究[J]. 交通运输系
+统工程与信息, 2026, 26(2): 00-00. [LI H J, ZHAO J P, MA Q L, et al. Research on Resource Allocation and 
+Process Optimization of Unloading Operations in Dry Bulk Ports[J]. Journal of Transportation Systems 
+Engineering and Information Technology, 2026, 26(2): 00-00. 
+ 
+网络首发时间：2026-03-26 19:40:05       网络首发地址：https://link.cnki.net/urlid/11.4520.u.20260326.0954.010
+ 
+ 
+and transport path constraints. A solving algorithm integrating a dynamic masking mechanism 
+within a Deep Deterministic Policy Gradient framework is proposed. Results show that this 
+algorithm notably improves solution speed while reducing operational time cost by 21% and energy 
+consumption cost by 26.4%. The proposed comprehensive solution can significantly lower the total 
+handling cost for the entire dry bulk port operational process. 
+Keywords: Waterway Transportation; Operational Process Optimization ; Mixed -Integer 
+Programming; Dry bulk port; Deep Deterministic Policy Gradient 
+ 
+ 
+ 
+ 
+0  引言 
+近年来， 随着我国经济的快速发展和大宗商品贸易需求的持续增长， 散货港口作为物流
+体系的核心枢纽， 承担着煤炭、 矿石、 石油、 化工产品等大宗物资的装卸、 存储和转运任务。
+2024 年，我国沿海港口完成货物吞吐量 136 亿吨，同比增长 3.3%。其中，干散货占据份额
+快速增加，占比超 30%[1]。数据表明，干散货运输在海运贸易中占据重要地位。然而，目前
+干散货港口作业仍面临瓶颈，严重制约大宗散货贸易的进一步发展，具体表现为：（1）港
+口泊位调度分配依赖人工，泊位与卸船机的协同作业能力不足，制约装卸作业效率；（2）
+堆场货位分配和货物运输路径缺乏系统规划， 导致后续作业流程中的大量冗余操作， 造成货
+位资源和作业设备资源浪费。 
+为解决港口泊位调度效率低下的问题， 研究人员运用运筹学方法， 将实际作业流程转化
+为数学模型， 以实现泊位资源的优化配置， 从而提升港口作业效率。 然而， 随着理论研究的
+不断深入， 仅针对泊位调度[2]的研究逐渐显现出性能瓶颈。 因此， “泊位-卸船机” 联合调度
+逐渐成为研究的主要趋势[3]。该方法通过融合更多实际作业环节，协同优化装卸流程，进一
+步提高整体作业效率。此类研究通常将作业场景建模为单目标（成本最低）[4]或多目标（效
+率与成本权衡）[5]优化问题，综合考虑泊位自然条件、卸船机作业特性以及各类实际约束，
+构建多维约束体系， 以求解最优调度方案。 随着更多作业流程被纳入模型， 问题的解空间急
+剧扩大， 导致优化求解面临较大挑战。 为此， 学者们在求解算法方面进行了诸多探索， 如遗
+传算法及其改进形式[6]、粒子群算法[5]等启发式算法被相继引入。然而，散货港口装卸流程
+复杂性强， 堆场货位分配、 港内运输路径优化、 货物出入库的不确定性等因素均对作业效率
+有重要影响。“泊位-卸船机”联合调度主要聚焦于卸货前沿环节的优化，而后续流程衔接
+的顺畅程度仍制约着整体调度性能的提升。目前，将货物从“入港”到“出库”的全流程纳
+入系统优化的研究仍较为有限。 
+为解决堆场作业中存在的货位与设备资源浪费问题， 运用运筹学理论进行建模与优化仍
+是当前主流的研究方向， 相关研究多聚焦于堆场内部的资源配置与流程优化。 这类方法通常
+先通过数学模型对堆场物理结构进行抽象表征，再借助改进遗传算法[7]或商业求解器[8]进行
+求解， 从而实现堆场资源的优化配置。 也有研究将图论引入堆场作业分析中， 例如利用有向
+图刻画堆场内各元素（如货位、皮带机、堆取料机等）之间的可达关系[9]，或将港口作业网
+络转化为混合整数规划模型[8]，以优化堆场内的货物运输路径。总体而言，图模型为堆场作
+业要素的抽象表征提供了一种创新视角：通过节点属性（如货位堆存量、堆取料机作业量）
+的动态调整与边路径（如皮带机系统）的协同优化，可有效提升堆场作业效率。然而，现有

@@ -54,31 +54,51 @@ async function parseApiResponse(response) {
   return data;
 }
 
+function pickRandom(pool) {
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 const demoExamples = [
   {
     key: "math_surface",
-    title: "高数曲面",
-    text: "判断曲面 z = x^2 - y^2 的类型，并说明为什么它是鞍面。",
+    title: "函数可视化",
+    text: pickRandom([
+      "判断曲面 z = x^2 - y^2 的类型，并说明为什么它是双曲抛物面。",
+      "求曲面 z = x^2 + y^2 与平面 z = 4 的截线，并说明图形特征。",
+      "画出曲面 z = x^2 - y^2，并观察 x=0 与 y=0 截面的开口方向。",
+      "比较曲面 z = x^2 + y^2 和 z = x^2 - y^2 的几何形状差异。",
+    ]),
   },
   {
     key: "math_limit",
-    title: "高数极限",
-    text: "计算极限 lim(x→0) sinx/x",
+    title: "极限与导数",
+    text: pickRandom([
+      "计算极限 lim(x→0) sinx/x。",
+      "求函数 f(x)=sin(x^2) 的导数。",
+      "求函数 f(x)=xlnx 的导数。",
+      "求极限 lim(x→∞)(1+1/x)^x。",
+    ]),
   },
   {
     key: "ocean_trade",
-    title: "远洋运输问答",
-    text: "国际贸易术语的主要作用是什么？",
-  },
-  {
-    key: "llm_fallback",
-    title: "Kimi 兜底",
-    text: "解释一下超弦理论与量子涨落的关系。",
+    title: "航运知识问答",
+    text: pickRandom([
+      "国际贸易术语的主要作用是什么？",
+      "FOB 术语下风险转移的界限是什么？",
+      "提单的功能不包括什么？",
+      "班轮运输的主要特点不包括哪一项？",
+    ]),
   },
   {
     key: "plot_nl",
-    title: "自然语言绘图",
-    text: "请画一个像帐篷一样中间高四周低的三维曲面，并给我 MATLAB 代码",
+    title: "公式随机启动",
+    text: pickRandom([
+      "请画出曲面 z = x^2 - y^2，并附上 MATLAB 代码。",
+      "请画出函数 y = exp(-x^2)，并说明图形特征。",
+      "请画出参数曲线 x = cos(t), y = sin(t)，并附上 MATLAB 代码。",
+      "请画出极坐标曲线 r = 1 + 2cos(theta)。",
+      "请画出曲面 z = x^2 + y^2 与平面 z = 4 的交线。",
+    ]),
   },
 ];
 
@@ -90,6 +110,7 @@ const sampleAliasMap = {
 
 export function useNavMathVision() {
   const questionText = ref("");
+  const plotEditText = ref("");
   const imageFile = ref(null);
   const statusText = ref("等待输入。");
   const plotTarget = ref(null);
@@ -140,9 +161,10 @@ export function useNavMathVision() {
   });
 
   const currentDemoExample = computed(() => demoExamples[demoState.currentIndex] || null);
+
   const demoStepText = computed(() => {
     if (!demoState.active || demoState.currentIndex < 0) {
-      return "演示模式未启动。可以直接点单条样例，也可以按固定流程连续演示。";
+      return "演示模式未启动。可以直接点单条示例，也可以按固定流程连续演示。";
     }
     return `演示模式进行中：第 ${demoState.currentIndex + 1} / ${demoExamples.length} 步`;
   });
@@ -158,7 +180,7 @@ export function useNavMathVision() {
       return `当前模式：图形演示${result.plot?.plot_label ? ` / ${result.plot.plot_label}` : ""}`;
     }
     if (result.view_mode === "knowledge") {
-      return "当前模式：知识点问答";
+      return "当前模式：知识问答";
     }
     return "当前模式：题目解析";
   });
@@ -198,6 +220,23 @@ export function useNavMathVision() {
   const plotSummary = computed(() => result.plot?.summary || "当前未生成图形。");
   const matlabCode = computed(() => result.plot?.matlab_code || "暂无代码");
   const teachingTip = computed(() => result.plot?.teaching_tip || "暂无教学提示。");
+
+  const plotLayers = computed(() =>
+    (result.plot?.plot_spec?.traces || result.plot?.data || []).map((trace, index) => ({
+      index,
+      name: trace.name || `图层 ${index + 1}`,
+      visible: trace.visible !== false && trace.visible !== "legendonly",
+      kind: trace.kind || trace.type || "trace",
+    }))
+  );
+
+  const plotMeta = computed(() => ({
+    expressionType: result.plot?.expression_type || result.plot?.plot_spec?.expression_type || "",
+    dimension: result.plot?.dimension || result.plot?.plot_spec?.dimension || "",
+    traceCount: plotLayers.value.length,
+    formulas: result.plot?.formulas || result.plot?.plot_spec?.formulas || [],
+    parameterRanges: result.plot?.plot_spec?.parameter_ranges || {},
+  }));
 
   const knowledgeDefinition = computed(() => {
     if (!result.matched_knowledge_point) {
@@ -285,6 +324,7 @@ export function useNavMathVision() {
     const payload = new FormData();
     payload.append("question_text", questionText.value.trim());
     payload.append("formula", "");
+    payload.append("previous_plot", "");
 
     let endpoint = "/api/analyze-text";
     if (imageFile.value) {
@@ -304,6 +344,7 @@ export function useNavMathVision() {
       updateStep("match", "active", "正在匹配课程、知识点和题目");
 
       Object.assign(result, data);
+      plotEditText.value = "";
 
       updateStep(
         "match",
@@ -319,10 +360,54 @@ export function useNavMathVision() {
       await renderPlot();
 
       updateStep("plot", result.plot ? "done" : "idle", result.plot ? "图形或代码已生成" : "未生成图形");
-      updateStep("done", "done", "结果已展示到页面");
+      updateStep("done", "done", "结果已显示到页面");
     } catch (error) {
       updateStep("done", "error", `失败：${error.message || error}`);
       statusText.value = `解析失败：${error.message || error}`;
+    }
+  }
+
+  async function submitPlotEdit() {
+    if (!result.plot) {
+      statusText.value = "当前还没有可修改的图像。";
+      return;
+    }
+
+    if (!plotEditText.value.trim()) {
+      statusText.value = "请输入图像修改指令。";
+      return;
+    }
+
+    resetSteps();
+    statusText.value = "正在基于当前图像执行修改。";
+    updateStep("input", "active", "正在读取图像修改指令");
+    updateStep("match", "active", "正在加载上一张图像状态");
+
+    const payload = new FormData();
+    payload.append("question_text", plotEditText.value.trim());
+    payload.append("formula", "");
+    payload.append("previous_plot", JSON.stringify(result.plot));
+
+    try {
+      const response = await fetch("/api/analyze-text", {
+        method: "POST",
+        body: payload,
+      });
+      const data = await parseApiResponse(response);
+
+      updateStep("input", "done", "修改指令已提交");
+      updateStep("match", "done", "已完成上一张图像状态匹配");
+
+      Object.assign(result, data);
+      statusText.value = "图像修改完成。";
+      await nextTick();
+      await renderPlot();
+
+      updateStep("plot", "done", "图像已按修改指令更新");
+      updateStep("done", "done", "修改结果已显示到页面");
+    } catch (error) {
+      updateStep("done", "error", `失败：${error.message || error}`);
+      statusText.value = `图像修改失败：${error.message || error}`;
     }
   }
 
@@ -345,6 +430,30 @@ export function useNavMathVision() {
       responsive: true,
       displaylogo: false,
     });
+  }
+
+  async function togglePlotLayer(index) {
+    if (!result.plot?.data?.[index]) {
+      return;
+    }
+
+    const current = result.plot.data[index];
+    const nextVisible = current.visible === "legendonly" || current.visible === false ? true : "legendonly";
+    result.plot.data[index] = { ...current, visible: nextVisible };
+
+    if (result.plot.plot_spec?.traces?.[index]) {
+      result.plot.plot_spec.traces[index] = {
+        ...result.plot.plot_spec.traces[index],
+        visible: nextVisible === true,
+      };
+    }
+
+    if (plotTarget.value && window.Plotly) {
+      await window.Plotly.react(plotTarget.value, result.plot.data, result.plot.layout, {
+        responsive: true,
+        displaylogo: false,
+      });
+    }
   }
 
   async function loadImportStatus() {
@@ -396,6 +505,7 @@ export function useNavMathVision() {
 
   return {
     questionText,
+    plotEditText,
     statusText,
     result,
     importState,
@@ -410,6 +520,8 @@ export function useNavMathVision() {
     plotSummary,
     matlabCode,
     teachingTip,
+    plotLayers,
+    plotMeta,
     knowledgeDefinition,
     ocrText,
     demoExamples,
@@ -421,6 +533,8 @@ export function useNavMathVision() {
     nextDemoStep,
     stopDemoMode,
     submitAnalysis,
+    submitPlotEdit,
+    togglePlotLayer,
     onImageChange,
     setPlotTarget,
     uploadKnowledgeCsv,

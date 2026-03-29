@@ -7,8 +7,8 @@ defineProps({
 });
 
 const navItems = [
-  { key: "home", label: "主页面", href: "/" },
-  { key: "demo", label: "页面占位", href: "/demo" },
+  { key: "home", label: "首页", href: "/" },
+  { key: "demo", label: "场景演示", href: "/demo" },
 ];
 </script>
 

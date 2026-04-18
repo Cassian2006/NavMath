@@ -12,7 +12,9 @@ from app.services.imports import handle_csv_import, load_import_dashboard
 from app.services.knowledge import (
     detect_course,
     find_formula_record,
+    load_interdisciplinary_cases,
     load_knowledge_base,
+    match_interdisciplinary_case,
     match_knowledge_point,
     match_problem,
     normalize_text,
@@ -24,6 +26,11 @@ from app.services.llm_answer import answer_question_with_kimi
 from app.services.llm_plot import parse_natural_language_plot
 from app.services.math_plot import build_plot_bundle, extract_formula_text, extract_formula_texts, suggest_formula
 from app.services.ocr import extract_text_from_image
+from app.services.vector_search import (
+    build_index,
+    is_index_ready,
+    vector_search,
+)
 from app.services.visualization import build_shape_bundle, build_shape_bundle_from_kind
 
 
@@ -239,6 +246,28 @@ def compose_analysis(
     detected_course = detect_course(cleaned_text)
     matched_problem = match_problem(cleaned_text, knowledge_base)
     matched_knowledge_point = match_knowledge_point(cleaned_text, knowledge_base)
+
+    # ── 跨学科案例检索（关键词层） ──
+    matched_case = match_interdisciplinary_case(cleaned_text)
+
+    # ── 向量检索补充层（仅在关键词层未命中时启用，避免延迟影响已命中结果） ──
+    vector_results: list[dict] = []
+    if is_index_ready() and not matched_problem and not matched_knowledge_point and not matched_case:
+        try:
+            vector_results = vector_search(cleaned_text, top_k=3)
+            # 若向量检索命中跨学科案例，补充到 matched_case
+            for vr in vector_results:
+                if vr["type"] == "interdisciplinary" and vr["score"] >= 0.55:
+                    matched_case = vr["data"]
+                    break
+                if vr["type"] == "problem" and vr["score"] >= 0.65 and not matched_problem:
+                    matched_problem = vr["data"]
+                    break
+                if vr["type"] == "knowledge_point" and vr["score"] >= 0.60 and not matched_knowledge_point:
+                    matched_knowledge_point = vr["data"]
+                    break
+        except Exception:
+            vector_results = []
     raw_formula = formula or ""
     detected_formula = suggest_formula(raw_formula) or suggest_formula(cleaned_text)
     detected_formulas = extract_formula_texts(raw_formula) or extract_formula_texts(cleaned_text)
@@ -349,6 +378,12 @@ def compose_analysis(
         "view_mode": view_mode,
         "matched_problem": matched_problem,
         "matched_knowledge_point": matched_knowledge_point,
+        "matched_case": matched_case,
+        "vector_results": [
+            {"score": r["score"], "type": r["type"],
+             "title": r["data"].get("title", r["data"].get("question", "")[:40])}
+            for r in vector_results
+        ],
         "formula": result_formula,
         "formulas": plot.get("formulas", detected_formulas) if plot else detected_formulas,
         "formula_record": formula_record,
@@ -415,6 +450,33 @@ async def import_status() -> JSONResponse:
 async def import_csv(kind: str = Form(...), file: UploadFile = File(...)) -> JSONResponse:
     content = await file.read()
     return JSONResponse(handle_csv_import(kind, content))
+
+
+@app.post("/api/build-index")
+async def build_vector_index() -> JSONResponse:
+    """构建/重建向量索引。知识库有大幅更新时调用一次即可。"""
+    try:
+        kb = load_knowledge_base()
+        cases = load_interdisciplinary_cases()
+        ok = build_index(kb, cases)
+        if ok:
+            return JSONResponse({
+                "status": "ok",
+                "message": f"向量索引构建成功：{len(kb.get('problems', []))}题 + "
+                           f"{len(kb.get('knowledge_points', []))}知识点 + "
+                           f"{len(cases)}跨学科案例"
+            })
+        return JSONResponse({"status": "skip", "message": "sentence-transformers 未安装或知识库为空"})
+    except Exception as exc:
+        return error_response(f"索引构建失败: {exc}", status_code=500)
+
+
+@app.get("/api/index-status")
+async def index_status() -> JSONResponse:
+    return JSONResponse({
+        "ready": is_index_ready(),
+        "message": "向量索引已就绪" if is_index_ready() else "向量索引未构建，请调用 POST /api/build-index"
+    })
 
 
 @app.get("/api/health")

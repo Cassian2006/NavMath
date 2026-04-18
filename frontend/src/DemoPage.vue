@@ -5,6 +5,7 @@ import BerthScenarioView from "./components/demo/BerthScenarioView.vue";
 import YardScenarioView from "./components/demo/YardScenarioView.vue";
 import InventoryScenarioView from "./components/demo/InventoryScenarioView.vue";
 import BulkPortScenarioView from "./components/demo/BulkPortScenarioView.vue";
+import GreatCircleMap from "./components/GreatCircleMap.vue";
 
 const url = new URL(window.location.href);
 const currentCategory = ref(url.searchParams.get("group") || "operations");
@@ -22,9 +23,9 @@ const categories = [
     description: "库存、航线、供应链反馈与系统级动态仿真。",
   },
   {
-    key: "resilience",
-    title: "预测、监测与韧性",
-    description: "预测、监控和韧性评估类入口，当前先保留扩展位。",
+    key: "math",
+    title: "数学 × 航运跨学科",
+    description: "大圆航线、Haversine 公式、球面几何在航运中的直接应用。",
   },
 ];
 
@@ -56,6 +57,13 @@ const sceneOptions = [
     title: "海运库存与航线联合决策",
     description: "讲清库存动态、海上路径、补货时机和滚动优化之间的耦合。",
     category: "supply",
+  },
+  {
+    key: "greatcircle",
+    eyebrow: "Scenario 05",
+    title: "大圆航线 vs 恒向线",
+    description: "球面几何与 Haversine 公式：为什么最短航线在地图上是弧线？",
+    category: "math",
   },
 ];
 
@@ -127,6 +135,7 @@ function setScene(key) {
     <YardScenarioView v-else-if="currentScene === 'yard'" />
     <InventoryScenarioView v-else-if="currentScene === 'inventory'" />
     <BulkPortScenarioView v-else-if="currentScene === 'bulk'" />
+    <GreatCircleMap v-else-if="currentScene === 'greatcircle'" />
     <section v-else class="panel scene-overview">
       <div class="scene-overview-copy">
         <p class="eyebrow">Coming Next</p>

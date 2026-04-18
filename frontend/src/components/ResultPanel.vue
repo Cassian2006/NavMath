@@ -120,6 +120,29 @@ defineProps({
         <p>{{ knowledgeDefinition }}</p>
       </article>
 
+      <!-- 跨学科案例卡片 -->
+      <article v-if="result.matched_case" class="card card-wide card-interdisciplinary">
+        <div class="inter-header">
+          <span class="inter-badge">🔗 跨学科案例</span>
+          <span class="inter-difficulty">难度：{{ result.matched_case.difficulty || '中' }}</span>
+        </div>
+        <h3>{{ result.matched_case.title }}</h3>
+        <div class="inter-meta">
+          <span class="inter-tag math">📐 {{ result.matched_case.math_concept }}</span>
+          <span class="inter-tag ship">⚓ {{ result.matched_case.shipping_scenario }}</span>
+        </div>
+        <p class="inter-question">{{ result.matched_case.core_question }}</p>
+        <p class="inter-insight">
+          <strong>核心洞察：</strong>{{ result.matched_case.key_insight }}
+        </p>
+        <div v-if="result.matched_case.real_world_numbers" class="inter-numbers">
+          <strong>实际数据：</strong>{{ result.matched_case.real_world_numbers }}
+        </div>
+        <div v-if="result.matched_case.teaching_note" class="inter-note">
+          💡 {{ result.matched_case.teaching_note }}
+        </div>
+      </article>
+
       <article class="card">
         <h3>OCR 状态</h3>
         <p>{{ ocrText }}</p>
@@ -134,3 +157,82 @@ defineProps({
     </div>
   </section>
 </template>
+
+<style scoped>
+.card-interdisciplinary {
+  border-left: 4px solid #a78bfa;
+  background: linear-gradient(135deg, #1e293b 0%, #1a1f35 100%);
+}
+.inter-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.inter-badge {
+  background: #312e81;
+  color: #a5b4fc;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.inter-difficulty {
+  font-size: 12px;
+  color: #94a3b8;
+}
+.card-interdisciplinary h3 {
+  color: #c4b5fd;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+.inter-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.inter-tag {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.inter-tag.math {
+  background: #1e3a5f;
+  color: #7dd3fc;
+}
+.inter-tag.ship {
+  background: #1a3a2a;
+  color: #6ee7b7;
+}
+.inter-question {
+  font-size: 13px;
+  color: #e2e8f0;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+.inter-insight {
+  font-size: 13px;
+  color: #cbd5e1;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+.inter-insight strong {
+  color: #a78bfa;
+}
+.inter-numbers {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  padding: 8px;
+  background: #0f172a;
+  border-radius: 6px;
+}
+.inter-note {
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
+  margin-top: 6px;
+}
+</style>

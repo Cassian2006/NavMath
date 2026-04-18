@@ -10,6 +10,8 @@
     "check": "vite build"
   },
   "dependencies": {
+    "globe.gl": "^2.45.3",
+    "three": "^0.183.2",
     "vue": "^3.5.13"
   },
   "devDependencies": {

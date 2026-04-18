@@ -127,6 +127,7 @@ export function useNavMathVision() {
       solution: "",
     },
     matched_knowledge_point: null,
+    matched_case: null,
     plot: null,
     ocr: null,
     filename: "",
@@ -484,10 +485,23 @@ export function useNavMathVision() {
         body: payload,
       });
       const data = await parseApiResponse(response);
-      importState.summary = `上传完成：${data.kind}，共导入 ${data.count} 条记录。`;
+      importState.summary = `上传完成：${data.kind}，共导入 ${data.count} 条记录。正在重建向量索引…`;
       await loadImportStatus();
+      await rebuildVectorIndex();
     } catch (error) {
       importState.summary = `上传失败：${error.message || error}`;
+    }
+  }
+
+  async function rebuildVectorIndex() {
+    try {
+      const response = await fetch("/api/build-index", { method: "POST" });
+      const data = await parseApiResponse(response);
+      if (data.status === "ok") {
+        importState.summary += ` 向量索引已更新（${data.message}）`;
+      }
+    } catch {
+      // 索引重建失败不阻断主流程，静默忽略
     }
   }
 

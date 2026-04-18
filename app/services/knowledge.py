@@ -13,6 +13,7 @@ import pandas as pd
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_PATH = BASE_DIR / "data" / "knowledge_base.json"
+INTERDISCIPLINARY_PATH = BASE_DIR / "data" / "interdisciplinary_cases.json"
 IMPORT_DIR = BASE_DIR / "data" / "imports"
 
 MIN_PROBLEM_SCORE = 7
@@ -35,10 +36,24 @@ SEMANTIC_REWRITE_RULES = [
     ("是什么类型", "类型"),
     ("怎么判断", "判断"),
     ("如何判断", "判断"),
+    ("如何理解", "解释"),
+    ("怎样理解", "解释"),
+    ("简述", "解释"),
+    ("说明", "解释"),
+    ("如何正确把握", "定义"),
+    ("基本含义是什么", "定义"),
+    ("基本概念是什么", "定义"),
+    ("什么是", ""),
+    ("是什么", ""),
+    ("有哪些", ""),
+    ("哪些是", ""),
+    ("如何", ""),
+    ("怎么", ""),
+    ("怎样", ""),
 ]
 
 SEMANTIC_ALIASES = {
-    "国际贸易术语": ["贸易术语", "incoterms"],
+    "国际贸易术语": ["贸易术语", "incoterms", "贸易条件"],
     "远洋运输业务": ["远洋运输", "航运业务", "国际航运"],
     "船舶保安": ["船舶安全保安", "保安体系"],
     "双曲抛物面": ["鞍面", "马鞍面"],
@@ -47,6 +62,28 @@ SEMANTIC_ALIASES = {
     "导数": ["求导", "微分"],
     "积分": ["积分计算", "定积分", "不定积分"],
     "曲面": ["三维图形", "三维曲面"],
+    "提单": ["bill of lading", "b/l", "bl"],
+    "班轮": ["liner", "班轮运输", "班轮服务"],
+    "租船": ["charter", "租船合同", "租船运输"],
+    "港口费用": ["港口收费", "港口成本", "泊位费"],
+    "托运": ["托运人", "货运委托", "shipping"],
+    "承运人": ["carrier", "船公司", "运输人"],
+    "无船承运人": ["nvocc", "无船公共承运人"],
+    "装货单": ["mate's receipt", "收货单"],
+    "卸货": ["discharge", "卸船", "卸载"],
+    # 跨学科案例检索别名
+    "排队论": ["排队等待", "等待时间", "泊位等待", "港口排队", "m/m/c", "泊松"],
+    "泊松分布": ["泊松", "到达率", "服务率", "排队"],
+    "燃油优化": ["燃油消耗", "油耗", "燃料优化", "慢速航行", "节能航行", "航速优化"],
+    "多元函数极值": ["极值", "最优化", "拉格朗日", "lagrange", "条件极值"],
+    "大圆航线": ["大圆", "球面最短路", "orthodrome", "haversine"],
+    "恒向线": ["等角航线", "loxodrome", "rhumb", "恒向"],
+    "整数规划": ["mip", "混合整数", "0-1规划", "岸桥调度"],
+    "遗传算法": ["ga", "启发式算法", "进化算法", "元启发"],
+    "微分方程": ["ode", "常微分", "二阶微分", "阻尼振动", "横摇"],
+    "图论": ["最短路", "dijkstra", "欧拉", "图网络", "路径规划"],
+    "正态分布": ["正态", "高斯", "中心极限", "clt", "置信区间"],
+    "定积分": ["体积分", "舱容积分", "舱容计算"],
 }
 
 STOP_PHRASES = [
@@ -372,7 +409,60 @@ def match_knowledge_point(text: str, knowledge_base: dict[str, Any]) -> dict[str
     )
 
 
+def load_interdisciplinary_cases() -> list[dict[str, Any]]:
+    """加载跨学科案例库"""
+    if not INTERDISCIPLINARY_PATH.exists():
+        return []
+    with INTERDISCIPLINARY_PATH.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data.get("cases", [])
+
+
+def _normalize_case_text(text: Any) -> str:
+    value = str(text or "").lower().strip()
+    value = re.sub(r"\s+", "", value)
+    value = re.sub(r"[，。！？；：、,.!?;:（）()“”\"'`·\-—\[\]【】]", "", value)
+    return value
+
+
+def _simple_case_score(query: str, candidate: str) -> int:
+    if not query or not candidate:
+        return 0
+    if query == candidate:
+        return 20
+    score = 0
+    if query in candidate:
+        score += 12
+    if candidate in query and len(candidate) >= 3:
+        score += 8
+
+    common_chars = set(query) & set(candidate)
+    score += min(len(common_chars), 6)
+    return score
+
+
+def match_interdisciplinary_case(text: str) -> dict[str, Any] | None:
+    """在跨学科案例库中检索最相关案例"""
+    cases = load_interdisciplinary_cases()
+    if not cases:
+        return None
+    normalized = _normalize_case_text(text)
+    best_score = 0
+    best_case = None
+    for case in cases:
+        score = 0
+        for field in ["title", "core_question", "math_concept", "shipping_scenario", "key_insight"]:
+            score += _simple_case_score(normalized, _normalize_case_text(case.get(field, "")))
+        for kw in case.get("keywords", []):
+            score += _simple_case_score(normalized, _normalize_case_text(kw)) + 2
+        if score > best_score:
+            best_score = score
+            best_case = case
+    return best_case if best_score >= 8 else None
+
+
 def find_formula_record(formula: str, knowledge_base: dict[str, Any]) -> dict[str, Any] | None:
+    """在知识库的公式表中根据别名匹配公式记录"""
     normalized = normalize_text(formula).replace(" ", "").lower()
     for item in knowledge_base.get("formulas", []):
         aliases = [alias.replace(" ", "").lower() for alias in item.get("aliases", [])]

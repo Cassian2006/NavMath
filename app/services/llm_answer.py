@@ -11,6 +11,30 @@ DEFAULT_API_BASE = "https://api.moonshot.cn/v1"
 DEFAULT_MODEL = "moonshot-v1-8k"
 
 
+def _retrieve_context(text: str) -> str:
+    """向量检索召回 top-3，拼成上下文字符串供 prompt 使用。"""
+    try:
+        from app.services.vector_search import is_index_ready, vector_search
+        if not is_index_ready():
+            return ""
+        results = vector_search(text, top_k=3)
+        if not results:
+            return ""
+        parts = []
+        for r in results:
+            d = r["data"]
+            if r["type"] == "problem":
+                chunk = f"[题目] {d.get('question', '')} 答案：{d.get('answer', '')} 解析：{d.get('analysis_steps', '')}"
+            elif r["type"] == "knowledge_point":
+                chunk = f"[知识点] {d.get('knowledge_point', '')}：{d.get('definition', '')} {d.get('summary', '')}"
+            else:
+                chunk = f"[跨学科案例] {d.get('title', '')}：{d.get('key_insight', '')}"
+            parts.append(chunk.strip())
+        return "\n".join(parts)
+    except Exception:
+        return ""
+
+
 def answer_question_with_kimi(text: str, course: str) -> dict[str, Any] | None:
     api_key = (
         os.getenv("KIMI_API_KEY", "").strip()
@@ -22,6 +46,7 @@ def answer_question_with_kimi(text: str, course: str) -> dict[str, Any] | None:
 
     api_base = os.getenv("KIMI_API_BASE", DEFAULT_API_BASE).rstrip("/")
     model = os.getenv("KIMI_MODEL", DEFAULT_MODEL).strip() or DEFAULT_MODEL
+    context = _retrieve_context(text)
     payload = {
         "model": model,
         "messages": [
@@ -29,13 +54,13 @@ def answer_question_with_kimi(text: str, course: str) -> dict[str, Any] | None:
                 "role": "system",
                 "content": (
                     "你是课程学习辅助系统里的教学问答助手。"
-                    "当本地题库和知识点库没有命中时，请直接输出严格 JSON。"
-                    "回答风格要像教学系统，不要聊天，不要客套，不要输出 JSON 之外的任何内容。"
+                    "请优先基于提供的参考资料回答，不要编造资料中没有的内容。"
+                    "直接输出严格 JSON，不要输出 JSON 之外的任何内容。"
                 ),
             },
             {
                 "role": "user",
-                "content": build_answer_prompt(text, course),
+                "content": build_answer_prompt(text, course, context),
             },
         ],
         "temperature": 0.3,
@@ -70,7 +95,7 @@ def answer_question_with_kimi(text: str, course: str) -> dict[str, Any] | None:
     return normalized
 
 
-def build_answer_prompt(text: str, course: str) -> str:
+def build_answer_prompt(text: str, course: str, context: str = "") -> str:
     schema = {
         "title": "一句话标题，2到10个字",
         "course": course or "通用课程",
@@ -82,9 +107,14 @@ def build_answer_prompt(text: str, course: str) -> str:
         ],
         "solution": "写成适合学生阅读的短正文，先给结论，再解释，再补一句提示。",
     }
+    context_section = (
+        f"\n参考资料（来自本地知识库，请优先基于此回答）：\n{context}\n"
+        if context else ""
+    )
     return (
         f"课程：{course or '未指定'}\n"
-        f"用户问题：{text}\n"
+        f"用户问题：{text}"
+        f"{context_section}\n"
         f"请按这个 JSON 模板返回：{json.dumps(schema, ensure_ascii=False)}\n"
         "要求：\n"
         "1. solution 适合直接展示给学生，不要写成碎片化条目。\n"

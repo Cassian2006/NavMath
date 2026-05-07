@@ -31,6 +31,7 @@ from app.services.vector_search import (
     is_index_ready,
     vector_search,
 )
+from app.services.web_search import looks_like_web_query, search_web
 from app.services.visualization import build_shape_bundle, build_shape_bundle_from_kind
 
 
@@ -110,14 +111,22 @@ def build_source_detail(
     matched_problem: dict[str, Any] | None,
     matched_knowledge_point: dict[str, Any] | None,
     plot: dict[str, Any] | None,
+    web_results: list[dict[str, Any]] | None = None,
 ) -> str:
+    has_web = bool(web_results)
     if parser == "kimi":
         if plot:
             return "Kimi 已将自然语言转成绘图意图，并生成可展示的图形结果。"
+        if has_web:
+            return "本地知识与联网资料已汇总，再由 Kimi 统一生成回答。"
         return "本地知识库未命中，已切换到 Kimi 二级中转回答。"
 
     if plot:
         return "本地公式解析或预设绘图规则已命中。"
+    if has_web and (matched_problem or matched_knowledge_point):
+        return "本地知识命中为主，同时补充了联网检索结果。"
+    if has_web:
+        return "本地未直接命中，已补充联网检索结果供后续回答使用。"
     if matched_problem and matched_problem.get("title") != "未命中预置题库":
         return "本地题库已命中。"
     if matched_knowledge_point:
@@ -275,6 +284,7 @@ def compose_analysis(
     plot = None
     parser = "local"
     plot_requested = bool(detected_formula) or looks_like_plot_request(cleaned_text)
+    web_results: list[dict[str, Any]] = []
 
     if detected_formula:
         try:
@@ -349,11 +359,25 @@ def compose_analysis(
     if not result_formula and formula_record:
         result_formula = formula_record.get("formula")
 
-    local_hit = matched_problem is not None or matched_knowledge_point is not None or formula_record is not None
+    local_hit = (
+        matched_problem is not None
+        or matched_knowledge_point is not None
+        or formula_record is not None
+        or matched_case is not None
+    )
+    if cleaned_text and not plot_requested and looks_like_web_query(cleaned_text, local_hit=local_hit):
+        web_results = search_web(cleaned_text, max_results=3)
+
     if not local_hit and cleaned_text:
-        kimi_answer = answer_question_with_kimi(cleaned_text, detected_course)
+        kimi_answer = answer_question_with_kimi(cleaned_text, detected_course, web_results=web_results)
         if kimi_answer is not None:
             matched_problem = kimi_answer
+            parser = "kimi"
+    elif web_results and cleaned_text and not plot_requested:
+        kimi_answer = answer_question_with_kimi(cleaned_text, detected_course, web_results=web_results)
+        if kimi_answer is not None:
+            matched_problem = kimi_answer
+            parser = "kimi"
 
     if matched_problem is None:
         matched_problem = build_fallback_problem(detected_course)
@@ -384,6 +408,7 @@ def compose_analysis(
              "title": r["data"].get("title", r["data"].get("question", "")[:40])}
             for r in vector_results
         ],
+        "web_results": web_results,
         "formula": result_formula,
         "formulas": plot.get("formulas", detected_formulas) if plot else detected_formulas,
         "formula_record": formula_record,
@@ -395,7 +420,14 @@ def compose_analysis(
             matched_problem,
             matched_knowledge_point,
             plot,
+            web_results,
         ),
+        "source_breakdown": {
+            "local": local_hit,
+            "vector": bool(vector_results),
+            "web": bool(web_results),
+            "llm": resolved_parser == "kimi",
+        },
     }
 
 

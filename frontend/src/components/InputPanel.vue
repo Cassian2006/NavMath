@@ -12,7 +12,7 @@ function handleImageChange(event) {
   <form class="panel form-panel" @submit.prevent="emit('submit')">
     <div class="panel-header">
       <h2>输入区</h2>
-      <p>支持自然语言问题、纯公式、图形描述和图片输入，系统会自动判断当前请求类型。</p>
+      <p>支持自然语言问题、纯公式、图形描述和题目图片输入，系统会自动判断当前请求类型。</p>
     </div>
 
     <label class="field">

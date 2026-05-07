@@ -49,7 +49,7 @@ const featureCards = [
 
     <aside class="hero-panel">
       <p class="eyebrow">快速开始</p>
-      <h2>直接提问或先点一条随机示例</h2>
+      <h2>直接提问，或先点一条随机示例</h2>
 
       <div class="example-list">
         <button

@@ -4,6 +4,7 @@ import math
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.services.web_search import looks_like_web_query
 
 
 client = TestClient(app)
@@ -190,3 +191,24 @@ def test_polar_curve_with_implicit_multiplication_is_supported() -> None:
     assert body["plot"]["expression_type"] == "polar2d"
     assert body["plot"]["data"][0]["type"] == "scatter"
     assert math.isclose(body["plot"]["plot_spec"]["parameter_ranges"]["theta"][1], 2 * math.pi)
+
+
+def test_web_query_heuristic_detects_latest_questions() -> None:
+    assert looks_like_web_query("最近红海航运局势有什么变化", local_hit=False) is True
+    assert looks_like_web_query("国际贸易术语的主要作用是什么", local_hit=True) is False
+
+
+def test_web_results_are_returned_when_search_layer_is_mocked(monkeypatch) -> None:
+    monkeypatch.setattr("app.main.search_web", lambda *_args, **_kwargs: [
+        {"title": "Mock result", "url": "https://example.com", "snippet": "latest shipping update"}
+    ])
+
+    response = client.post(
+        "/api/analyze-text",
+        data={"question_text": "最近红海航运局势有什么变化", "formula": "", "previous_plot": ""},
+    )
+
+    body = response.json()
+    assert response.status_code == 200
+    assert body["web_results"]
+    assert body["source_breakdown"]["web"] is True

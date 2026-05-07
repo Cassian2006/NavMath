@@ -97,6 +97,20 @@ defineProps({
       </article>
 
       <article class="card">
+        <h3>来源分层</h3>
+        <div class="tag-list">
+          <span :class="{ 'tag-active': result.source_breakdown?.local }">本地知识</span>
+          <span :class="{ 'tag-active': result.source_breakdown?.vector }">向量召回</span>
+          <span :class="{ 'tag-active': result.source_breakdown?.web }">联网补充</span>
+          <span :class="{ 'tag-active': result.source_breakdown?.llm }">模型综合</span>
+        </div>
+        <p v-if="result.web_results?.length">
+          已补充 {{ result.web_results.length }} 条联网结果，用于回答最新信息或现实案例。
+        </p>
+        <p v-else>当前回答未使用联网检索结果。</p>
+      </article>
+
+      <article class="card">
         <h3>题目解析</h3>
         <ol class="step-list">
           <li v-for="item in result.matched_problem.analysis_steps || []" :key="item">{{ item }}</li>
@@ -120,16 +134,15 @@ defineProps({
         <p>{{ knowledgeDefinition }}</p>
       </article>
 
-      <!-- 跨学科案例卡片 -->
       <article v-if="result.matched_case" class="card card-wide card-interdisciplinary">
         <div class="inter-header">
-          <span class="inter-badge">🔗 跨学科案例</span>
-          <span class="inter-difficulty">难度：{{ result.matched_case.difficulty || '中' }}</span>
+          <span class="inter-badge">跨学科案例</span>
+          <span class="inter-difficulty">难度：{{ result.matched_case.difficulty || "中" }}</span>
         </div>
         <h3>{{ result.matched_case.title }}</h3>
         <div class="inter-meta">
-          <span class="inter-tag math">📐 {{ result.matched_case.math_concept }}</span>
-          <span class="inter-tag ship">⚓ {{ result.matched_case.shipping_scenario }}</span>
+          <span class="inter-tag math">{{ result.matched_case.math_concept }}</span>
+          <span class="inter-tag ship">{{ result.matched_case.shipping_scenario }}</span>
         </div>
         <p class="inter-question">{{ result.matched_case.core_question }}</p>
         <p class="inter-insight">
@@ -139,7 +152,27 @@ defineProps({
           <strong>实际数据：</strong>{{ result.matched_case.real_world_numbers }}
         </div>
         <div v-if="result.matched_case.teaching_note" class="inter-note">
-          💡 {{ result.matched_case.teaching_note }}
+          {{ result.matched_case.teaching_note }}
+        </div>
+      </article>
+
+      <article v-if="result.web_results?.length" class="card card-wide">
+        <h3>联网补充资料</h3>
+        <div class="web-result-list">
+          <a
+            v-for="item in result.web_results"
+            :key="item.url"
+            class="web-result-item"
+            :href="item.url"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <div class="web-result-meta">
+              <strong>{{ item.title }}</strong>
+              <span v-if="item.domain" class="web-domain">{{ item.domain }}</span>
+            </div>
+            <span>{{ item.snippet || "无摘要" }}</span>
+          </a>
         </div>
       </article>
 
@@ -163,12 +196,14 @@ defineProps({
   border-left: 4px solid #a78bfa;
   background: linear-gradient(135deg, #1e293b 0%, #1a1f35 100%);
 }
+
 .inter-header {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 8px;
 }
+
 .inter-badge {
   background: #312e81;
   color: #a5b4fc;
@@ -177,50 +212,60 @@ defineProps({
   font-size: 12px;
   font-weight: 600;
 }
+
 .inter-difficulty {
   font-size: 12px;
   color: #94a3b8;
 }
+
 .card-interdisciplinary h3 {
   color: #c4b5fd;
   font-size: 15px;
   margin-bottom: 10px;
 }
+
 .inter-meta {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 10px;
 }
+
 .inter-tag {
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
 }
+
 .inter-tag.math {
   background: #1e3a5f;
   color: #7dd3fc;
 }
+
 .inter-tag.ship {
   background: #1a3a2a;
   color: #6ee7b7;
 }
+
 .inter-question {
   font-size: 13px;
   color: #e2e8f0;
   margin-bottom: 8px;
   line-height: 1.6;
 }
+
 .inter-insight {
   font-size: 13px;
   color: #cbd5e1;
   margin-bottom: 8px;
   line-height: 1.6;
 }
+
 .inter-insight strong {
   color: #a78bfa;
 }
+
 .inter-numbers {
   font-size: 12px;
   color: #94a3b8;
@@ -229,10 +274,56 @@ defineProps({
   background: #0f172a;
   border-radius: 6px;
 }
+
 .inter-note {
   font-size: 12px;
   color: #64748b;
   font-style: italic;
   margin-top: 6px;
+}
+
+.tag-active {
+  border-color: #38bdf8;
+  color: #e2e8f0;
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.web-result-list {
+  display: grid;
+  gap: 10px;
+}
+
+.web-result-item {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #0f172a;
+  color: #cbd5e1;
+  text-decoration: none;
+  border: 1px solid #1e293b;
+}
+
+.web-result-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.web-result-item strong {
+  color: #93c5fd;
+  font-size: 13px;
+}
+
+.web-domain {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.web-result-item span {
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.6;
 }
 </style>
